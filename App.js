@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -6,13 +6,11 @@ import * as RNP from "react-native-paper";
 import axios from "axios";
 import { Provider as PaperProvider } from "react-native-paper";
 import { useAppTheme } from "./common/theme";
-import * as Linking from "expo-linking";
 import ScheduleTabs from "./components/ScheduleTabs";
 import ScheduleList from "./components/ScheduleList";
 import Header from "./components/Header";
 import NotificationsSection from "./components/NotificationsSection";
 import {
-  formattedDate,
   isToday,
   isTomorrow,
   overmorrowFormatted,
@@ -27,19 +25,32 @@ import * as Notifications from "expo-notifications";
 const expoPushToken = "ExponentPushToken[2khGbLLiXAT5dPG4YPuC-M]";
 
 export default function Main() {
-  const [isNotifyOn, setIsNotifyOn] = useState(false);
+  const [isNotifyAllOn, setIsNotifyAllOn] = useState(false);
   const [isVisibleSnack, setIsVisibleSnack] = useState(false);
-  const [currentSchedule, setCurrentSchedule] = useState([]);
+  const [currentTodaySchedule, setCurrentTodaySchedule] = useState([]);
+  const [currentTomorrowSchedule, setCurrentTomorrowSchedule] = useState([]);
+  const [currentOvermorrowSchedule, setCurrentOvermorrowSchedule] = useState(
+    []
+  );
   const [dateToShow, setDateToShow] = useState("today");
   const [spotsWanted, setSpotsWanted] = useState(1);
-  const [scrapeInterval, setScrapeInterval] = useState(null);
-  const [newAvailableSpots, setNewAvailableSpots] = useState([]);
+  const [newTodaySpaces, setNewTodaySpaces] = useState([]);
+  const [newTomorrowSpaces, setNewTomorrowSpaces] = useState([]);
+  const [newOvermorrowSpaces, setNewOvermorrowSpaces] = useState([]);
 
   const theme = useAppTheme();
 
-  const newSpotsMemo = useMemo(
-    () => newAvailableSpots,
-    [newAvailableSpots.length]
+  const newTodaySpacesMemo = useMemo(
+    () => newTodaySpaces,
+    [newTodaySpaces.length]
+  );
+  const newTomorrowSpacesMemo = useMemo(
+    () => newTomorrowSpaces,
+    [newTomorrowSpaces.length]
+  );
+  const newOvermorrowSpacesMemo = useMemo(
+    () => newOvermorrowSpaces,
+    [newOvermorrowSpaces.length]
   );
 
   Notifications.setNotificationHandler({
@@ -51,8 +62,8 @@ export default function Main() {
   });
 
   // Can use this function below OR use Expo's Push Notification Tool from: https://expo.dev/notifications
-  async function sendPushNotification() {
-    const body = newSpotsMemo
+  async function sendPushNotification(spacesDay) {
+    const body = spacesDay
       .map((item) => {
         let day = item.date;
         if (isToday(item.date)) {
@@ -121,7 +132,7 @@ export default function Main() {
   }
 
   const toggleNotifications = () => {
-    setIsNotifyOn(!isNotifyOn);
+    setIsNotifyAllOn(!isNotifyAllOn);
     setIsVisibleSnack(true);
   };
 
@@ -146,30 +157,65 @@ export default function Main() {
     return availability;
   }
 
-  useEffect(() => {
-    if (newSpotsMemo.length && isNotifyOn) sendPushNotification();
-  }, [newSpotsMemo]);
-
-  useEffect(() => {
-    if (scrapeInterval) {
-      clearInterval(scrapeInterval);
-      setScrapeInterval(null);
+  const getCurrentSchedule = () => {
+    if (dateToShow === "today") {
+      return currentTodaySchedule;
+    } else if (dateToShow === "tomorrow") {
+      return currentTomorrowSchedule;
+    } else if (dateToShow === "overmorrow") {
+      return currentOvermorrowSchedule;
     }
+  };
 
-    getSchedule(dateToShow);
+  useEffect(() => {
+    if (newTodaySpacesMemo.length && isNotifyAllOn)
+      sendPushNotification(newTodaySpacesMemo);
+  }, [newTodaySpacesMemo]);
+
+  useEffect(() => {
+    if (newTomorrowSpacesMemo.length && isNotifyAllOn)
+      sendPushNotification(newTomorrowSpacesMemo);
+  }, [newTomorrowSpacesMemo]);
+
+  useEffect(() => {
+    if (newOvermorrowSpacesMemo.length && isNotifyAllOn)
+      sendPushNotification(newOvermorrowSpacesMemo);
+  }, [newOvermorrowSpacesMemo]);
+
+  // const retrieveSchedules = useCallback(async () => {
+  // }
+
+  const getAllSchedules = () => {
+    getSchedule("today");
+    getSchedule("tomorrow");
+    getSchedule("overmorrow");
+  };
+
+  useEffect(() => {
+    // if (scrapeInterval) {
+    //   clearInterval(scrapeInterval);
+    //   setScrapeInterval(null);
+    // }
+
+    getAllSchedules();
     const interval = setInterval(() => {
-      getSchedule(dateToShow);
-      console.log("scraping", new Date().toLocaleTimeString());
+      getAllSchedules();
+      console.log(`scraping`, new Date().toLocaleTimeString());
     }, 30000);
-    setScrapeInterval(interval);
+    // setScrapeInterval(interval);
     return () => clearInterval(interval);
-  }, [dateToShow]);
+  }, []);
 
-  const checkAvailabilityChange = (oldSchedule, newSchedule) => {
+  const checkAvailabilityChange = (
+    oldSchedule,
+    newSchedule,
+    newSpaceSetter
+  ) => {
     const availableSpots = [];
     newSchedule.forEach((newItem) => {
       const oldItem = oldSchedule.find(
-        (oldItem) => oldItem.date === newItem.date
+        (oldItem) =>
+          oldItem.date === newItem.date && oldItem.slot === newItem.slot
       );
 
       if (oldItem) {
@@ -193,19 +239,29 @@ export default function Main() {
 
         if (oldAvail !== newAvail && newAvail >= spotsWanted) {
           availableSpots.push(newItem);
+          console.log({ oldItem, newItem });
         }
       }
     });
 
-    setNewAvailableSpots(availableSpots);
+    newSpaceSetter(availableSpots);
   };
 
   const getSchedule = async (parseDate) => {
     let date = todayFormatted;
+    let currentSchedule = currentTodaySchedule;
+    let currentScheduleSetter = setCurrentTodaySchedule;
+    let newSpaceSetter = setNewTodaySpaces;
     if (parseDate === "tomorrow") {
       date = tomorrowFormatted;
+      currentSchedule = currentTomorrowSchedule;
+      currentScheduleSetter = setCurrentTomorrowSchedule;
+      newSpaceSetter = setNewTomorrowSpaces;
     } else if (parseDate === "overmorrow") {
       date = overmorrowFormatted;
+      currentSchedule = currentOvermorrowSchedule;
+      currentScheduleSetter = setCurrentOvermorrowSchedule;
+      newSpaceSetter = setNewOvermorrowSpaces;
     }
 
     const options = {
@@ -250,8 +306,8 @@ export default function Main() {
         }
         return item;
       });
-      checkAvailabilityChange(currentSchedule, result);
-      setCurrentSchedule(result);
+      checkAvailabilityChange(currentSchedule, result, newSpaceSetter);
+      currentScheduleSetter(result);
     } catch (error) {
       console.error(error);
     }
@@ -261,34 +317,41 @@ export default function Main() {
     <PaperProvider theme={theme}>
       <SafeAreaProvider>
         <Header />
-        <View style={styles.container}>
-          <View style={styles.flex}>
-            <ScheduleTabs {...{ onTabChange, dateToShow }} />
-          </View>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: theme.colors.background,
+          }}
+        >
           <NotificationsSection
             {...{
               spotsWanted,
               setSpotsWanted,
-              isNotifyOn,
+              isNotifyAllOn,
               toggleNotifications,
             }}
           />
-          <ScheduleList {...{ currentSchedule }} />
-          <RNP.Snackbar
+          <ScheduleList
+            {...{ isNotifyAllOn, currentSchedule: getCurrentSchedule() }}
+          />
+          <View>
+            <ScheduleTabs {...{ onTabChange, dateToShow }} />
+          </View>
+          {/* <RNP.Snackbar
             visible={isVisibleSnack}
             onDismiss={onDismissSnackBar}
             action={{
               label: "Undo",
               onPress: () => {
-                setIsNotifyOn(!isNotifyOn);
+                setIsNotifyAllOn(!isNotifyAllOn);
                 setIsVisibleSnack(false);
               },
             }}
           >
-            <RNP.Text style={styles.light}>
-              Notifications for {dateToShow} are {isNotifyOn ? "on" : "off"}
+            <RNP.Text style={{ color: theme.colors.onPrimary }}>
+              Notifications for {dateToShow} are {isNotifyAllOn ? "on" : "off"}
             </RNP.Text>
-          </RNP.Snackbar>
+          </RNP.Snackbar> */}
           <StatusBar style="auto" />
         </View>
       </SafeAreaProvider>
@@ -297,19 +360,11 @@ export default function Main() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 20,
-  },
   flex: {
     alignItems: "center",
     flexDirection: "row",
     paddingLeft: 10,
     paddingRight: 10,
-  },
-  light: {
-    color: "#fff",
   },
   listHeader: {
     alignItems: "center",

@@ -4,7 +4,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useAppTheme } from "../common/theme";
 
 export default function NotificationsSection({
-  isNotifyOn,
+  isNotifyAllOn,
   setSpotsWanted,
   spotsWanted,
   toggleNotifications,
@@ -12,47 +12,62 @@ export default function NotificationsSection({
   const theme = useAppTheme();
 
   return (
-    <View style={styles.notificationSection}>
-      <View style={styles.flex}>
-        <RNP.Text style={{ color: theme.colors.primary, paddingLeft: 10 }}>
-          Notify when at least
-        </RNP.Text>
-
-        <View>
-          <Picker
+    <>
+      <View style={styles.notificationSection}>
+        <View style={styles.flex}>
+          <RNP.Text
             style={{
-              width: 80,
+              color: theme.colors.tertiary,
             }}
-            selectedValue={spotsWanted}
-            onValueChange={(itemValue) => setSpotsWanted(itemValue)}
           >
-            <Picker.Item label="1" value="1" />
-            <Picker.Item label="2" value="2" />
-            <Picker.Item label="3" value="3" />
-            <Picker.Item label="4" value="4" />
-          </Picker>
-        </View>
-        <RNP.Text style={{ color: theme.colors.primary }}>
-          space{spotsWanted != 1 && "s"} open{spotsWanted == 1 && "s"} up
-        </RNP.Text>
-      </View>
+            Minimum spaces required:
+          </RNP.Text>
 
-      <RNP.Switch value={isNotifyOn} onValueChange={toggleNotifications} />
-    </View>
+          <View>
+            <Picker
+              style={{
+                width: 75,
+                color: theme.colors.inverseSurface,
+                fontWeight: "bold",
+                borderWidth: 1,
+                borderColor: theme.colors.tertiary,
+                borderStyle: "solid",
+              }}
+              dropdownIconColor={theme.colors.inverseSurface}
+              selectedValue={spotsWanted}
+              onValueChange={(itemValue) => setSpotsWanted(itemValue)}
+            >
+              <Picker.Item label="1" value="1" />
+              <Picker.Item label="2" value="2" />
+              <Picker.Item label="3" value="3" />
+              <Picker.Item label="4" value="4" />
+            </Picker>
+          </View>
+          {/* <RNP.Switch value={isNotifyAllOn} onValueChange={toggleNotifications} /> */}
+        </View>
+        <RNP.Button
+          icon={isNotifyAllOn ? "bell-off-outline" : "bell"}
+          iconColor={theme.colors.tertiary}
+          onPress={toggleNotifications}
+        >
+          Toggle All {isNotifyAllOn ? "OFF" : "ON"}
+        </RNP.Button>
+      </View>
+      <RNP.Divider />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    alignItems: "center",
-    flexDirection: "row",
-    paddingLeft: 10,
-  },
   notificationSection: {
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
-    paddingLeft: 10,
-    paddingRight: 10,
+    paddingLeft: 20,
+    paddingRight: 20,
+  },
+  flex: {
+    alignItems: "center",
+    flexDirection: "row",
   },
 });

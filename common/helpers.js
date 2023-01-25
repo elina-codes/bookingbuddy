@@ -1,3 +1,5 @@
+/* DATES */
+
 export const formattedDate = (date) => {
   const localized = date
     .toLocaleDateString("en-US", {
@@ -22,3 +24,5 @@ export const isTomorrow = (date) =>
   new Date(date).getDate() == tomorrow.getDate();
 export const isOvermorrow = (date) =>
   new Date(date).getDate() == overmorrow.getDate();
+
+/* STRINGS */
