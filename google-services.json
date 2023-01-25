@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "459783509204",
+    "project_id": "booking-checker-60438",
+    "storage_bucket": "booking-checker-60438.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459783509204:android:cd0a40ba3c8063d2325741",
+        "android_client_info": {
+          "package_name": "com.goldin.bookingchecker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "459783509204-u2795lscn62m6i6nbsmhn8n9ff4jscap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcQ50K-IvW0uf5pbGkJa3tGjb3vppUGWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "459783509204-u2795lscn62m6i6nbsmhn8n9ff4jscap.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

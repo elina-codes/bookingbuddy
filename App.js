@@ -1,32 +1,136 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as RNP from "react-native-paper";
 import axios from "axios";
 import { Provider as PaperProvider } from "react-native-paper";
-import { useAppTheme } from "./theme";
+import { useAppTheme } from "./common/theme";
 import * as Linking from "expo-linking";
+import ScheduleTabs from "./components/ScheduleTabs";
+import ScheduleList from "./components/ScheduleList";
+import Header from "./components/Header";
+import NotificationsSection from "./components/NotificationsSection";
+import {
+  formattedDate,
+  isToday,
+  isTomorrow,
+  overmorrowFormatted,
+  todayFormatted,
+  tomorrowFormatted,
+} from "./common/helpers";
+
+import { Platform } from "react-native";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+
+const expoPushToken = "ExponentPushToken[2khGbLLiXAT5dPG4YPuC-M]";
 
 export default function Main() {
   const [isNotifyOn, setIsNotifyOn] = useState(false);
   const [isVisibleSnack, setIsVisibleSnack] = useState(false);
   const [currentSchedule, setCurrentSchedule] = useState([]);
   const [dateToShow, setDateToShow] = useState("today");
+  const [spotsWanted, setSpotsWanted] = useState(1);
+  const [scrapeInterval, setScrapeInterval] = useState(null);
+  const [newAvailableSpots, setNewAvailableSpots] = useState([]);
+
   const theme = useAppTheme();
+
+  const newSpotsMemo = useMemo(
+    () => newAvailableSpots,
+    [newAvailableSpots.length]
+  );
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+
+  // Can use this function below OR use Expo's Push Notification Tool from: https://expo.dev/notifications
+  async function sendPushNotification() {
+    const body = newSpotsMemo
+      .map((item) => {
+        let day = item.date;
+        if (isToday(item.date)) {
+          day = "Today";
+        }
+        if (isTomorrow(item.date)) {
+          day = "Tomorrow";
+        }
+
+        return `${day}: ${item.availability} from ${item.slot}`;
+      })
+      .join("\n");
+    const message = {
+      to: expoPushToken,
+      sound: "default",
+      title: `New Hive spaces available!`,
+      body,
+      data: { someData: "goes here" },
+    };
+
+    try {
+      await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Accept-encoding": "gzip, deflate",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Failed to get push token for push notification!");
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+
+    return token;
+  }
 
   const toggleNotifications = () => {
     setIsNotifyOn(!isNotifyOn);
     setIsVisibleSnack(true);
   };
 
-  const onBookPress = () => {
-    Linking.openURL(
-      "https://app.rockgympro.com/b/widget/?a=offering&offering_guid=1c7052e4cd1c44469569ef7fea299ddd&widget_guid=2224a8b95d0e4ca7bf20012ec34b8f3e&random=63cf60713e8cf&iframeid=&mode=p"
-    );
-  };
-
   const onDismissSnackBar = () => setIsVisibleSnack(false);
+
+  const onTabChange = (day) => {
+    setDateToShow(day);
+    onDismissSnackBar();
+  };
 
   function parseAvailability(str) {
     const regex =
@@ -42,38 +146,66 @@ export default function Main() {
     return availability;
   }
 
-  function getOvermorrowDate() {
-    var today = new Date();
-    var overmorrow = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
-    var options = { month: "short", day: "numeric" };
-    return overmorrow.toLocaleDateString("en-US", options);
-  }
-
-  const formattedDate = (date) => {
-    const localized = date
-      .toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-      .split("/");
-    return `${localized[2]}-${localized[0]}-${localized[1]}`;
-  };
+  useEffect(() => {
+    if (newSpotsMemo.length && isNotifyOn) sendPushNotification();
+  }, [newSpotsMemo]);
 
   useEffect(() => {
+    if (scrapeInterval) {
+      clearInterval(scrapeInterval);
+      setScrapeInterval(null);
+    }
+
     getSchedule(dateToShow);
+    const interval = setInterval(() => {
+      getSchedule(dateToShow);
+      console.log("scraping", new Date().toLocaleTimeString());
+    }, 30000);
+    setScrapeInterval(interval);
+    return () => clearInterval(interval);
   }, [dateToShow]);
 
+  const checkAvailabilityChange = (oldSchedule, newSchedule) => {
+    const availableSpots = [];
+    newSchedule.forEach((newItem) => {
+      const oldItem = oldSchedule.find(
+        (oldItem) => oldItem.date === newItem.date
+      );
+
+      if (oldItem) {
+        let oldAvail;
+        if (oldItem.availability === "Full") {
+          oldAvail = 0;
+        } else if (oldItem.availability === "Available") {
+          oldAvail = 100;
+        } else if (oldItem.availability.includes(" ")) {
+          oldAvail = parseInt(oldItem.availability[0]);
+        }
+
+        let newAvail;
+        if (newItem.availability === "Full") {
+          newAvail = 0;
+        } else if (newItem.availability === "Available") {
+          newAvail = 100;
+        } else if (newItem.availability.includes(" ")) {
+          newAvail = parseInt(newItem.availability[0]);
+        }
+
+        if (oldAvail !== newAvail && newAvail >= spotsWanted) {
+          availableSpots.push(newItem);
+        }
+      }
+    });
+
+    setNewAvailableSpots(availableSpots);
+  };
+
   const getSchedule = async (parseDate) => {
-    let date = formattedDate(new Date());
+    let date = todayFormatted;
     if (parseDate === "tomorrow") {
-      date = formattedDate(
-        new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
-      );
+      date = tomorrowFormatted;
     } else if (parseDate === "overmorrow") {
-      date = formattedDate(
-        new Date(new Date().getTime() + 48 * 60 * 60 * 1000)
-      );
+      date = overmorrowFormatted;
     }
 
     const options = {
@@ -118,124 +250,30 @@ export default function Main() {
         }
         return item;
       });
+      checkAvailabilityChange(currentSchedule, result);
       setCurrentSchedule(result);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const availabilityColorMap = (availability) => {
-    switch (availability) {
-      case "Full":
-        return "red";
-      case "Available":
-        return "green";
-      default:
-        return "orange";
-    }
-  };
-
-  const availabilityIconMap = (availability) => {
-    switch (availability) {
-      case "Full":
-        return "block-helper";
-      case "Available":
-        return "check-circle";
-      default:
-        return "alert-circle";
-    }
-  };
-
-  const onTabChange = (day) => {
-    setDateToShow(day);
-    onDismissSnackBar();
-  };
-
-  console.log(theme);
-
   return (
     <PaperProvider theme={theme}>
       <SafeAreaProvider>
-        <RNP.Appbar.Header
-          style={{
-            backgroundColor: theme.colors.primary,
-          }}
-        >
-          <RNP.Appbar.Content
-            title="Hive Vancouver Availability"
-            color="#fff"
-          />
-          <RNP.Appbar.Action icon="cog" color="#fff" onPress={() => {}} />
-        </RNP.Appbar.Header>
+        <Header />
         <View style={styles.container}>
           <View style={styles.flex}>
-            <RNP.SegmentedButtons
-              value={dateToShow}
-              onValueChange={onTabChange}
-              buttons={[
-                {
-                  label: "Today",
-                  value: "today",
-                  icon: dateToShow === "today" ? "reload" : "",
-                },
-                {
-                  label: "Tomorrow",
-                  value: "tomorrow",
-                  icon: dateToShow === "tomorrow" ? "reload" : "",
-                },
-                {
-                  label: getOvermorrowDate(),
-                  value: "overmorrow",
-                  icon: dateToShow === "overmorrow" ? "reload" : "",
-                },
-              ]}
-            />
+            <ScheduleTabs {...{ onTabChange, dateToShow }} />
           </View>
-          <View style={styles.flex}>
-            <RNP.Text style={{ color: theme.colors.primary, paddingLeft: 10 }}>
-              Notify me when new spots become available
-            </RNP.Text>
-            <RNP.Switch
-              value={isNotifyOn}
-              onValueChange={toggleNotifications}
-            />
-          </View>
-          {currentSchedule?.length > 0 ? (
-            <ScrollView>
-              <RNP.List.Section>
-                {currentSchedule.map((item, index) => {
-                  return (
-                    <RNP.List.Item
-                      style={
-                        item.availability === "Full" ? { opacity: 0.5 } : {}
-                      }
-                      key={index}
-                      title={item.slot}
-                      description={item.availability}
-                      left={(props) => (
-                        <RNP.List.Icon
-                          {...props}
-                          color={availabilityColorMap(item.availability)}
-                          icon={availabilityIconMap(item.availability)}
-                        />
-                      )}
-                      // right={(props) =>
-                      //   item.availability !== "Full" && (
-                      //     <RNP.Button {...props} onPress={onBookPress}>
-                      //       Book
-                      //     </RNP.Button>
-                      //   )
-                      // }
-                    />
-                  );
-                })}
-              </RNP.List.Section>
-            </ScrollView>
-          ) : (
-            <View style={styles.noResults}>
-              <RNP.Text variant="bodyLarge">No availabilities to show</RNP.Text>
-            </View>
-          )}
+          <NotificationsSection
+            {...{
+              spotsWanted,
+              setSpotsWanted,
+              isNotifyOn,
+              toggleNotifications,
+            }}
+          />
+          <ScheduleList {...{ currentSchedule }} />
           <RNP.Snackbar
             visible={isVisibleSnack}
             onDismiss={onDismissSnackBar}
@@ -266,7 +304,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     alignItems: "center",
-    justifyContent: "space-between",
     flexDirection: "row",
     paddingLeft: 10,
     paddingRight: 10,
@@ -280,5 +317,12 @@ const styles = StyleSheet.create({
   noResults: {
     alignItems: "center",
     padding: 20,
+  },
+  notificationSection: {
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexDirection: "row",
+    paddingLeft: 10,
+    paddingRight: 10,
   },
 });
