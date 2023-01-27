@@ -1,5 +1,40 @@
 import { MD3DarkTheme as DefaultTheme, useTheme } from "react-native-paper";
 
+export const blueGradient = ["#051937", "#004d7a", "#008793", "#00bf72"];
+export const redGradient = [
+  // "#000066",
+  "#57006b",
+  "#8a0067",
+  "#b8005f",
+  "#db0054",
+  "#f63741",
+  "#ff692e",
+  "#ff970f",
+  // "#ffbf00",
+  // "#ffea00",
+];
+
+// "#000066",
+// "#57006b",
+// "#8a0067",
+// "#b8005f",
+// "#db0054",
+// "#f63741",
+// "#ff692e",
+// "#ff970f",
+// "#ffbf00",
+// "#ffea00",
+
+// rgb(0, 0, 102)
+// rgb(87, 0, 107)
+// rgb(138, 0, 103)
+// rgb(184, 0, 95)
+// rgb(219, 0, 84)
+// rgb(246, 55, 65)
+// rgb(255, 105, 46)
+// rgb(255, 151, 15)
+// rgb(255, 191, 0)
+// rgb(255, 234, 0)
 export const theme = {
   ...DefaultTheme,
   // Specify custom property
@@ -7,21 +42,42 @@ export const theme = {
   mode: "exact",
   // Specify custom property in nested object
   colors: {
-    primary: "rgb(174, 211, 110)",
-    onPrimary: "rgb(35, 54, 0)",
-    primaryContainer: "rgb(53, 78, 0)",
-    onPrimaryContainer: "rgb(201, 240, 135)",
+    gradients: {
+      primary: [
+        // "#000066",
+        "#57006b",
+        "#8a0067",
+        "#b8005f",
+        "#db0054",
+        "#f63741",
+        "#ff692e",
+        // "#ff970f",
+        // "#ffbf00",
+        // "#ffea00",
+      ],
+      secondary: [
+        "#051937",
+        "#004d7a",
+        "#008793",
+        "#00bf72",
+        // "#a8eb12",
+      ],
+    },
+    primary: "#00ffd2",
+    onPrimary: "rgb(0, 0, 102)",
+    primaryContainer: "rgb(87, 0, 107)",
+    onPrimaryContainer: "rgb(219, 0, 84)",
     secondary: "rgb(193, 202, 171)",
     onSecondary: "rgb(43, 51, 29)",
     secondaryContainer: "rgb(65, 74, 50)",
     onSecondaryContainer: "rgb(221, 230, 198)",
     tertiary: "rgb(160, 208, 201)",
-    onTertiary: "rgb(1, 55, 51)",
-    tertiaryContainer: "rgb(31, 78, 73)",
-    onTertiaryContainer: "rgb(188, 236, 229)",
+    onTertiary: "rgb(184, 0, 95)",
+    tertiaryContainer: "#008793",
+    onTertiaryContainer: "#ffbf00",
     error: "rgb(255, 180, 171)",
-    onError: "rgb(105, 0, 5)",
-    errorContainer: "rgb(147, 0, 10)",
+    onError: "rgb(219, 0, 84)",
+    errorContainer: "rgb(246, 55, 65)",
     onErrorContainer: "rgb(255, 180, 171)",
     background: "rgb(27, 28, 24)",
     onBackground: "rgb(228, 227, 219)",
@@ -36,7 +92,8 @@ export const theme = {
     inverseSurface: "rgb(228, 227, 219)",
     inverseOnSurface: "rgb(48, 49, 44)",
     inversePrimary: "rgb(73, 104, 13)",
-    warning: "rgb(217, 133, 62)",
+    success: "#a8eb12",
+    warning: "rgb(255, 191, 0)",
     elevation: {
       level0: "transparent",
       level1: "rgb(34, 37, 28)",

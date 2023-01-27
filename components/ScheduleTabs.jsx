@@ -1,7 +1,12 @@
 import * as RNP from "react-native-paper";
-import { useAppTheme } from "../common/theme";
+import { blueGradient, redGradient, useAppTheme } from "../common/theme";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function ScheduleTabs({ onTabChange, dateToShow }) {
+export default function ScheduleTabs({
+  onTabChange,
+  dateToShow,
+  currentTheme,
+}) {
   const theme = useAppTheme();
 
   const getOvermorrowDate = () => {
@@ -25,60 +30,55 @@ export default function ScheduleTabs({ onTabChange, dateToShow }) {
   };
 
   return (
-    <RNP.SegmentedButtons
-      value={dateToShow}
-      onValueChange={onTabChange}
-      style={{ borderRadius: 0 }}
-      buttons={[
-        {
-          label: "Today",
-          value: "today",
-          contentStyle,
-          style: {
-            ...style,
-            backgroundColor:
-              dateToShow === "today"
-                ? theme.colors.primaryContainer
-                : theme.colors.onTertiary,
-            // color:
-            //   dateToShow === "today"
-            //     ? theme.colors.surface
-            //     : theme.colors.inverseSurface,
+    <LinearGradient
+      colors={currentTheme === "default" ? redGradient : blueGradient}
+      start={{ x: 0, y: 6 }}
+      end={{ x: 1.4, y: 0 }}
+    >
+      <RNP.SegmentedButtons
+        value={dateToShow}
+        onValueChange={onTabChange}
+        style={{ borderRadius: 0 }}
+        buttons={[
+          {
+            label: "Today",
+            value: "today",
+            textColor: theme.colors.primary,
+            contentStyle,
+            style: {
+              ...style,
+              backgroundColor:
+                dateToShow === "today" ? "rgba(30,30,30,0.8)" : "transparent",
+            },
           },
-        },
-        {
-          label: "Tomorrow",
-          value: "tomorrow",
-          contentStyle,
-          style: {
-            ...style,
-            backgroundColor:
-              dateToShow === "tomorrow"
-                ? theme.colors.primaryContainer
-                : theme.colors.onTertiary,
-            // color:
-            //   dateToShow === "tomorrow"
-            //     ? theme.colors.surface
-            //     : theme.colors.inverseSurface,
+          {
+            label: "Tomorrow",
+            value: "tomorrow",
+            contentStyle,
+            textColor: theme.colors.primary,
+            style: {
+              ...style,
+              backgroundColor:
+                dateToShow === "tomorrow"
+                  ? "rgba(30,30,30,0.8)"
+                  : "transparent",
+            },
           },
-        },
-        {
-          label: getOvermorrowDate(),
-          value: "overmorrow",
-          contentStyle,
-          style: {
-            ...style,
-            backgroundColor:
-              dateToShow === "overmorrow"
-                ? theme.colors.primaryContainer
-                : theme.colors.onTertiary,
-            // color:
-            //   dateToShow === "overmorrow"
-            //     ? theme.colors.surface
-            //     : theme.colors.inverseSurface,
+          {
+            label: getOvermorrowDate(),
+            value: "overmorrow",
+            contentStyle,
+            textColor: theme.colors.primary,
+            style: {
+              ...style,
+              backgroundColor:
+                dateToShow === "overmorrow"
+                  ? "rgba(30,30,30,0.8)"
+                  : "transparent",
+            },
           },
-        },
-      ]}
-    />
+        ]}
+      />
+    </LinearGradient>
   );
 }

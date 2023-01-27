@@ -1,16 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as RNP from "react-native-paper";
-import axios from "axios";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as PaperProvider } from "react-native-paper";
 import { useAppTheme } from "./common/theme";
 import ScheduleTabs from "./components/ScheduleTabs";
 import ScheduleList from "./components/ScheduleList";
 import Header from "./components/Header";
 import NotificationsSection from "./components/NotificationsSection";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import {
+  formattedDate,
   isToday,
   isTomorrow,
   overmorrowFormatted,
@@ -21,67 +23,149 @@ import {
 import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-
-const expoPushToken = "ExponentPushToken[2khGbLLiXAT5dPG4YPuC-M]";
+import { useInterval } from "./common/hooks/useInterval";
 
 export default function Main() {
-  const [isNotifyAllOn, setIsNotifyAllOn] = useState(false);
-  const [isVisibleSnack, setIsVisibleSnack] = useState(false);
-  const [currentTodaySchedule, setCurrentTodaySchedule] = useState([]);
-  const [currentTomorrowSchedule, setCurrentTomorrowSchedule] = useState([]);
-  const [currentOvermorrowSchedule, setCurrentOvermorrowSchedule] = useState(
+  const theme = useAppTheme();
+  const [currentTheme, setCurrentTheme] = useState("default");
+  const [dateToShow, setDateToShow] = useState("today");
+  const [notifySlots, setNotifySlots] = useState(new Map([]));
+
+  const [isNotifyAllTodayOn, setIsNotifyAllTodayOn] = useState(false);
+  const [isNotifyAllTomorrowOn, setIsNotifyAllTomorrowOn] = useState(false);
+  const [isNotifyAllOvermorrowOn, setIsNotifyAllOvermorrowOn] = useState(false);
+
+  const [currentScheduleToday, setCurrentScheduleToday] = useState([]);
+  const [currentScheduleTomorrow, setCurrentScheduleTomorrow] = useState([]);
+  const [currentScheduleOvermorrow, setCurrentScheduleOvermorrow] = useState(
     []
   );
-  const [dateToShow, setDateToShow] = useState("today");
-  const [spotsWanted, setSpotsWanted] = useState(1);
-  const [newTodaySpaces, setNewTodaySpaces] = useState([]);
-  const [newTomorrowSpaces, setNewTomorrowSpaces] = useState([]);
-  const [newOvermorrowSpaces, setNewOvermorrowSpaces] = useState([]);
+  const [spotsWantedToday, setSpotsWantedToday] = useState(1);
+  const [spotsWantedTomorrow, setSpotsWantedTomorrow] = useState(1);
+  const [spotsWantedOvermorrow, setSpotsWantedOvermorrow] = useState(1);
 
-  const theme = useAppTheme();
+  const [newSpacesToday, setNewSpacesToday] = useState([]);
+  const [newSpacesTomorrow, setNewSpacesTomorrow] = useState([]);
+  const [newSpacesOvermorrow, setNewSpacesOvermorrow] = useState([]);
 
-  const newTodaySpacesMemo = useMemo(
-    () => newTodaySpaces,
-    [newTodaySpaces.length]
-  );
-  const newTomorrowSpacesMemo = useMemo(
-    () => newTomorrowSpaces,
-    [newTomorrowSpaces.length]
-  );
-  const newOvermorrowSpacesMemo = useMemo(
-    () => newOvermorrowSpaces,
-    [newOvermorrowSpaces.length]
-  );
+  const [expoPushToken, setExpoPushToken] = useState("");
+
+  const dayFuncMap = new Map([
+    [
+      "today",
+      {
+        spotsWanted: spotsWantedToday,
+        newSpaces: newSpacesToday,
+        currentSchedule: currentScheduleToday,
+        notifyAllDay: isNotifyAllTodayOn,
+        setSpotsWanted: setSpotsWantedToday,
+        setNewSpaces: setNewSpacesToday,
+        setCurrentSchedule: setCurrentScheduleToday,
+        setNotifyAllDay: setIsNotifyAllTodayOn,
+      },
+    ],
+    [
+      "tomorrow",
+      {
+        spotsWanted: spotsWantedTomorrow,
+        newSpaces: newSpacesTomorrow,
+        currentSchedule: currentScheduleTomorrow,
+        notifyAllDay: isNotifyAllTomorrowOn,
+        setSpotsWanted: setSpotsWantedTomorrow,
+        setNewSpaces: setNewSpacesTomorrow,
+        setCurrentSchedule: setCurrentScheduleTomorrow,
+        setNotifyAllDay: setIsNotifyAllTomorrowOn,
+      },
+    ],
+    [
+      "overmorrow",
+      {
+        spotsWanted: spotsWantedOvermorrow,
+        newSpaces: newSpacesOvermorrow,
+        currentSchedule: currentScheduleOvermorrow,
+        notifyAllDay: isNotifyAllOvermorrowOn,
+        setSpotsWanted: setSpotsWantedOvermorrow,
+        setNewSpaces: setNewSpacesOvermorrow,
+        setCurrentSchedule: setCurrentScheduleOvermorrow,
+        setNotifyAllDay: setIsNotifyAllOvermorrowOn,
+      },
+    ],
+  ]);
+
+  const currentTab = dayFuncMap.get(dateToShow);
+
+  const updateTheme = () => {
+    setCurrentTheme((prev) => (prev === "default" ? "blue" : "default"));
+  };
+
+  const registerForPushNotificationsAsync = async () => {
+    let token;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+
+    if (Device.isDevice) {
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Failed to get push token for push notification!");
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+
+    return token;
+  };
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((token) =>
+      setExpoPushToken(token)
+    );
+  }, []);
 
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
     }),
   });
 
   // Can use this function below OR use Expo's Push Notification Tool from: https://expo.dev/notifications
-  async function sendPushNotification(spacesDay) {
+  const sendPushNotification = async (spacesDay) => {
+    console.log("Sending push notification...", spacesDay);
     const body = spacesDay
       .map((item) => {
-        let day = item.date;
-        if (isToday(item.date)) {
-          day = "Today";
+        let { date, availability, slot } = item;
+        if (isToday(date)) {
+          date = "Today";
         }
-        if (isTomorrow(item.date)) {
-          day = "Tomorrow";
+        if (isTomorrow(date)) {
+          date = "Tomorrow";
         }
 
-        return `${day}: ${item.availability} from ${item.slot}`;
+        return `${date}: ${availability} from ${slot}`;
       })
       .join("\n");
+
     const message = {
       to: expoPushToken,
       sound: "default",
-      title: `New Hive spaces available!`,
+      title: `New Hive spaces available! 🎉`,
       body,
-      data: { someData: "goes here" },
     };
 
     try {
@@ -97,51 +181,28 @@ export default function Main() {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async function registerForPushNotificationsAsync() {
-    let token;
-    if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== "granted") {
-        alert("Failed to get push token for push notification!");
-        return;
-      }
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log(token);
-    } else {
-      alert("Must use physical device for Push Notifications");
-    }
-
-    if (Platform.OS === "android") {
-      Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF231F7C",
-      });
-    }
-
-    return token;
-  }
-
-  const toggleNotifications = () => {
-    setIsNotifyAllOn(!isNotifyAllOn);
-    setIsVisibleSnack(true);
   };
 
-  const onDismissSnackBar = () => setIsVisibleSnack(false);
-
-  const onTabChange = (day) => {
-    setDateToShow(day);
-    onDismissSnackBar();
+  const updateNotifySlots = (id, notify) => {
+    setNotifySlots((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(id, notify);
+      return newMap;
+    });
   };
+
+  const newSpacesTodayMemo = useMemo(
+    () => newSpacesToday,
+    [newSpacesToday.length]
+  );
+  const newSpacesTomorrowMemo = useMemo(
+    () => newSpacesTomorrow,
+    [newSpacesTomorrow.length]
+  );
+  const newSpacesOvermorrowMemo = useMemo(
+    () => newSpacesOvermorrow,
+    [newSpacesOvermorrow.length]
+  );
 
   function parseAvailability(str) {
     const regex =
@@ -150,40 +211,32 @@ export default function Main() {
     const availability = [];
     while ((match = regex.exec(str))) {
       availability.push({
-        date: match[1] + "-" + match[2],
+        date: `${match[1]}-${match[2]}`,
         availability: match[3],
       });
     }
     return availability;
   }
 
-  const getCurrentSchedule = () => {
-    if (dateToShow === "today") {
-      return currentTodaySchedule;
-    } else if (dateToShow === "tomorrow") {
-      return currentTomorrowSchedule;
-    } else if (dateToShow === "overmorrow") {
-      return currentOvermorrowSchedule;
-    }
+  const toggleNotifications = () => {
+    const setNotifyAll = currentTab.setNotifyAllDay;
+    setNotifyAll(!currentTab.notifyAllDay);
   };
 
   useEffect(() => {
-    if (newTodaySpacesMemo.length && isNotifyAllOn)
-      sendPushNotification(newTodaySpacesMemo);
-  }, [newTodaySpacesMemo]);
+    if (newSpacesTodayMemo.length && notifySlots.size)
+      sendPushNotification(newSpacesTodayMemo);
+  }, [newSpacesTodayMemo]);
 
   useEffect(() => {
-    if (newTomorrowSpacesMemo.length && isNotifyAllOn)
-      sendPushNotification(newTomorrowSpacesMemo);
-  }, [newTomorrowSpacesMemo]);
+    if (newSpacesTomorrowMemo.length && notifySlots.size)
+      sendPushNotification(newSpacesTomorrowMemo);
+  }, [newSpacesTomorrowMemo]);
 
   useEffect(() => {
-    if (newOvermorrowSpacesMemo.length && isNotifyAllOn)
-      sendPushNotification(newOvermorrowSpacesMemo);
-  }, [newOvermorrowSpacesMemo]);
-
-  // const retrieveSchedules = useCallback(async () => {
-  // }
+    if (newSpacesOvermorrowMemo.length && notifySlots.size)
+      sendPushNotification(newSpacesOvermorrowMemo);
+  }, [newSpacesOvermorrowMemo]);
 
   const getAllSchedules = () => {
     getSchedule("today");
@@ -191,77 +244,75 @@ export default function Main() {
     getSchedule("overmorrow");
   };
 
-  useEffect(() => {
-    // if (scrapeInterval) {
-    //   clearInterval(scrapeInterval);
-    //   setScrapeInterval(null);
-    // }
+  useInterval(getAllSchedules, 30000);
 
+  useEffect(() => {
     getAllSchedules();
-    const interval = setInterval(() => {
-      getAllSchedules();
-      console.log(`scraping`, new Date().toLocaleTimeString());
-    }, 30000);
-    // setScrapeInterval(interval);
-    return () => clearInterval(interval);
   }, []);
 
-  const checkAvailabilityChange = (
-    oldSchedule,
-    newSchedule,
-    newSpaceSetter
-  ) => {
+  const checkAvailabilityChange = (oldSchedule, newSchedule, spotsWanted) => {
     const availableSpots = [];
+
     newSchedule.forEach((newItem) => {
       const oldItem = oldSchedule.find(
         (oldItem) =>
-          oldItem.date === newItem.date && oldItem.slot === newItem.slot
+          oldItem.id === newItem.id &&
+          oldItem.availability !== newItem.availability
       );
 
+      const normalizeAvailability = (item) => {
+        switch (item.availability) {
+          case "Full":
+            return 0;
+          case "Available":
+            return 100;
+          default:
+            return parseInt(item.availability[0]);
+        }
+      };
+
       if (oldItem) {
-        let oldAvail;
-        if (oldItem.availability === "Full") {
-          oldAvail = 0;
-        } else if (oldItem.availability === "Available") {
-          oldAvail = 100;
-        } else if (oldItem.availability.includes(" ")) {
-          oldAvail = parseInt(oldItem.availability[0]);
-        }
+        const newAvail = normalizeAvailability(newItem);
 
-        let newAvail;
-        if (newItem.availability === "Full") {
-          newAvail = 0;
-        } else if (newItem.availability === "Available") {
-          newAvail = 100;
-        } else if (newItem.availability.includes(" ")) {
-          newAvail = parseInt(newItem.availability[0]);
-        }
-
-        if (oldAvail !== newAvail && newAvail >= spotsWanted) {
+        if (newAvail >= spotsWanted) {
           availableSpots.push(newItem);
           console.log({ oldItem, newItem });
         }
       }
     });
 
-    newSpaceSetter(availableSpots);
+    return availableSpots;
+  };
+
+  const notifyNewSpaces = (newSpaces, newSpaceSetter) => {
+    for (let newSpace of newSpaces) {
+      const notifySlot = notifySlots.get(newSpace.id);
+      console.log({ newSpace, notifySlot });
+      if (notifySlot) {
+        newSpaceSetter(newSpace);
+      }
+    }
   };
 
   const getSchedule = async (parseDate) => {
     let date = todayFormatted;
-    let currentSchedule = currentTodaySchedule;
-    let currentScheduleSetter = setCurrentTodaySchedule;
-    let newSpaceSetter = setNewTodaySpaces;
+    let currentSchedule = currentScheduleToday;
+    let currentScheduleSetter = setCurrentScheduleToday;
+    let newSpaceSetter = setNewSpacesToday;
+    let spotsWanted = spotsWantedToday;
+
     if (parseDate === "tomorrow") {
       date = tomorrowFormatted;
-      currentSchedule = currentTomorrowSchedule;
-      currentScheduleSetter = setCurrentTomorrowSchedule;
-      newSpaceSetter = setNewTomorrowSpaces;
+      currentSchedule = currentScheduleTomorrow;
+      currentScheduleSetter = setCurrentScheduleTomorrow;
+      newSpaceSetter = setNewSpacesTomorrow;
+      spotsWanted = spotsWantedTomorrow;
     } else if (parseDate === "overmorrow") {
       date = overmorrowFormatted;
-      currentSchedule = currentOvermorrowSchedule;
-      currentScheduleSetter = setCurrentOvermorrowSchedule;
-      newSpaceSetter = setNewOvermorrowSpaces;
+      currentSchedule = currentScheduleOvermorrow;
+      currentScheduleSetter = setCurrentScheduleOvermorrow;
+      newSpaceSetter = setNewSpacesOvermorrow;
+      spotsWanted = spotsWantedOvermorrow;
     }
 
     const options = {
@@ -296,27 +347,40 @@ export default function Main() {
       const resp = response.data.event_list_html;
       const resp_array = parseAvailability(resp);
       const result = resp_array.map((item) => {
-        item.slot = item.date.split(",")[2].trim();
-        item.date =
-          item.date.split(",")[0].trim() +
-          ", " +
-          item.date.split(",")[1].trim();
-        if (item.availability.search("Full") > 0) {
+        const splitItem = item.date.split(",");
+        const itemDate = new Date(
+          `${splitItem[1].trim()},${new Date().getFullYear()}`
+        );
+        const itemSlot = splitItem[2].trim();
+        item.slot = itemSlot;
+        item.date = itemDate;
+        item.id = `${formattedDate(itemDate)},${itemSlot}`;
+        if (item.availability.includes("Full")) {
           item.availability = "Full";
         }
         return item;
       });
-      checkAvailabilityChange(currentSchedule, result, newSpaceSetter);
+      const newSpaces = checkAvailabilityChange(
+        currentSchedule,
+        result,
+        spotsWanted
+      );
+      notifyNewSpaces(newSpaces, newSpaceSetter);
       currentScheduleSetter(result);
     } catch (error) {
       console.error(error);
     }
   };
 
+  const onTabChange = (day) => {
+    setDateToShow(day);
+  };
+
   return (
     <PaperProvider theme={theme}>
       <SafeAreaProvider>
-        <Header />
+        <StatusBar style="light" />
+        <Header {...{ currentTheme, updateTheme }} />
         <View
           style={{
             flex: 1,
@@ -325,59 +389,25 @@ export default function Main() {
         >
           <NotificationsSection
             {...{
-              spotsWanted,
-              setSpotsWanted,
-              isNotifyAllOn,
+              spotsWanted: currentTab.spotsWanted,
+              setSpotsWanted: currentTab.setSpotsWanted,
+              isNotifyAllOn: currentTab.notifyAllDay,
               toggleNotifications,
             }}
           />
           <ScheduleList
-            {...{ isNotifyAllOn, currentSchedule: getCurrentSchedule() }}
+            {...{
+              isNotifyAllOn: currentTab.notifyAllDay,
+              currentSchedule: currentTab.currentSchedule,
+              notifySlots,
+              updateNotifySlots,
+            }}
           />
           <View>
-            <ScheduleTabs {...{ onTabChange, dateToShow }} />
+            <ScheduleTabs {...{ onTabChange, dateToShow, currentTheme }} />
           </View>
-          {/* <RNP.Snackbar
-            visible={isVisibleSnack}
-            onDismiss={onDismissSnackBar}
-            action={{
-              label: "Undo",
-              onPress: () => {
-                setIsNotifyAllOn(!isNotifyAllOn);
-                setIsVisibleSnack(false);
-              },
-            }}
-          >
-            <RNP.Text style={{ color: theme.colors.onPrimary }}>
-              Notifications for {dateToShow} are {isNotifyAllOn ? "on" : "off"}
-            </RNP.Text>
-          </RNP.Snackbar> */}
-          <StatusBar style="auto" />
         </View>
       </SafeAreaProvider>
     </PaperProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: {
-    alignItems: "center",
-    flexDirection: "row",
-    paddingLeft: 10,
-    paddingRight: 10,
-  },
-  listHeader: {
-    alignItems: "center",
-  },
-  noResults: {
-    alignItems: "center",
-    padding: 20,
-  },
-  notificationSection: {
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    paddingLeft: 10,
-    paddingRight: 10,
-  },
-});

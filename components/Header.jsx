@@ -1,8 +1,9 @@
 import * as RNP from "react-native-paper";
 import * as Linking from "expo-linking";
-import { useAppTheme } from "../common/theme";
+import { blueGradient, redGradient, useAppTheme } from "../common/theme";
+import { LinearGradient } from "expo-linear-gradient";
 
-export default function Header() {
+export default function Header({ currentTheme, updateTheme }) {
   const theme = useAppTheme();
 
   const onWebsitePress = () => {
@@ -12,20 +13,33 @@ export default function Header() {
   };
 
   return (
-    <RNP.Appbar.Header
-      style={{
-        backgroundColor: theme.colors.onTertiary,
-      }}
+    <LinearGradient
+      colors={currentTheme === "default" ? redGradient : blueGradient}
+      start={{ x: 0, y: 2 }}
+      end={{ x: 1, y: 0 }}
     >
-      <RNP.Appbar.Content
-        title="Hive Booking Buddy"
-        color={theme.colors.inverseSurface}
-      />
-      <RNP.Appbar.Action
-        icon="open-in-new"
-        color={theme.colors.inverseSurface}
-        onPress={onWebsitePress}
-      />
-    </RNP.Appbar.Header>
+      <RNP.Appbar.Header
+        style={{
+          // backgroundColor: theme.colors.onTertiary,
+          backgroundColor: "transparent",
+          backgroundImage: theme.colors.gradient,
+        }}
+      >
+        <RNP.Appbar.Content
+          title="Hive Booking Buddy"
+          color={theme.colors.inverseSurface}
+        />
+        <RNP.Appbar.Action
+          icon="palette"
+          color={theme.colors.inverseSurface}
+          onPress={updateTheme}
+        />
+        <RNP.Appbar.Action
+          icon="open-in-new"
+          color={theme.colors.inverseSurface}
+          onPress={onWebsitePress}
+        />
+      </RNP.Appbar.Header>
+    </LinearGradient>
   );
 }

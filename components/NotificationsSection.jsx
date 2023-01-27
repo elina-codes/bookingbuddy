@@ -17,7 +17,7 @@ export default function NotificationsSection({
         <View style={styles.flex}>
           <RNP.Text
             style={{
-              color: theme.colors.tertiary,
+              color: theme.colors.inverseSurface,
             }}
           >
             Minimum spaces required:
@@ -45,13 +45,12 @@ export default function NotificationsSection({
           </View>
           {/* <RNP.Switch value={isNotifyAllOn} onValueChange={toggleNotifications} /> */}
         </View>
-        <RNP.Button
+        {/* <RNP.Button
           icon={isNotifyAllOn ? "bell-off-outline" : "bell"}
-          iconColor={theme.colors.tertiary}
           onPress={toggleNotifications}
         >
           Toggle All {isNotifyAllOn ? "OFF" : "ON"}
-        </RNP.Button>
+        </RNP.Button> */}
       </View>
       <RNP.Divider />
     </>

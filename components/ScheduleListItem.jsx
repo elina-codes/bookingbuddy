@@ -2,16 +2,27 @@ import { useEffect, useState } from "react";
 import * as RNP from "react-native-paper";
 import { useAppTheme } from "../common/theme";
 
-export default function ScheduleListItem({ data, isNotifyAllOn }) {
-  const [isNotifyOn, setIsNotifyOn] = useState(isNotifyAllOn);
+export default function ScheduleListItem({
+  data,
+  isNotifyAllOn,
+  notify,
+  updateNotifySlots,
+}) {
+  const { availability, slot, id } = data;
   const theme = useAppTheme();
-  const { availability, slot } = data;
+  const [isNotifyOn, setIsNotifyOn] = useState(notify);
 
-  const toggleNotifications = () => setIsNotifyOn(!isNotifyOn);
+  const toggleNotifications = () => {
+    updateNotifySlots(id, !notify);
+  };
 
   useEffect(() => {
-    setIsNotifyOn(isNotifyAllOn);
-  }, [isNotifyAllOn]);
+    setIsNotifyOn(notify);
+  }, [notify]);
+
+  // useEffect(() => {
+  //   updateNotifySlots(date, slot, isNotifyAllOn);
+  // }, [isNotifyAllOn]);
 
   const onBookPress = () => {
     Linking.openURL(
@@ -24,7 +35,7 @@ export default function ScheduleListItem({ data, isNotifyAllOn }) {
       case "Full":
         return theme.colors.errorContainer;
       case "Available":
-        return theme.colors.primary;
+        return theme.colors.success;
       default:
         return theme.colors.warning;
     }
@@ -47,7 +58,6 @@ export default function ScheduleListItem({ data, isNotifyAllOn }) {
       descriptionStyle={availability === "Full" ? { opacity: 0.5 } : {}}
       title={slot}
       description={availability}
-      onPress={toggleNotifications}
       rippleColor="transparent"
       left={(props) => (
         <RNP.List.Icon
@@ -59,11 +69,10 @@ export default function ScheduleListItem({ data, isNotifyAllOn }) {
       right={(props) => (
         <RNP.IconButton
           {...props}
-          icon={isNotifyOn ? "bell-ring" : "bell-off-outline"}
+          onPress={toggleNotifications}
+          icon={isNotifyOn ? "bell" : "bell-off-outline"}
           iconColor={
-            isNotifyOn
-              ? theme.colors.onTertiaryContainer
-              : theme.colors.tertiaryContainer
+            isNotifyOn ? theme.colors.primary : theme.colors.surfaceVariant
           }
           // onPress={toggleNotifications}
         />
