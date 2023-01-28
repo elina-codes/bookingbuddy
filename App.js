@@ -146,40 +146,42 @@ export default function Main() {
 
   // Can use this function below OR use Expo's Push Notification Tool from: https://expo.dev/notifications
   const sendPushNotification = async (spacesDay) => {
-    console.log("Sending push notification...", spacesDay);
-    const body = spacesDay
-      .map((item) => {
-        let { date, availability, slot } = item;
-        if (isToday(date)) {
-          date = "Today";
-        }
-        if (isTomorrow(date)) {
-          date = "Tomorrow";
-        }
+    if (spacesDay.length) {
+      console.log("Sending push notification...", spacesDay);
+      const body = spacesDay
+        .map((item) => {
+          let { date, availability, slot } = item;
+          if (isToday(date)) {
+            date = "Today";
+          }
+          if (isTomorrow(date)) {
+            date = "Tomorrow";
+          }
 
-        return `${date}: ${availability} from ${slot}`;
-      })
-      .join("\n");
+          return `${date}: ${availability} from ${slot}`;
+        })
+        .join("\n");
 
-    const message = {
-      to: expoPushToken,
-      sound: "default",
-      title: `New Hive spaces available! 🎉`,
-      body,
-    };
+      const message = {
+        to: expoPushToken,
+        sound: "default",
+        title: `New Hive spaces available! 🎉`,
+        body,
+      };
 
-    try {
-      await fetch("https://exp.host/--/api/v2/push/send", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Accept-encoding": "gzip, deflate",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(message),
-      });
-    } catch (error) {
-      console.error(error);
+      try {
+        await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Accept-encoding": "gzip, deflate",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(message),
+        });
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -191,17 +193,14 @@ export default function Main() {
     });
   };
 
-  const newSpacesTodayMemo = useMemo(
-    () => newSpacesToday,
-    [newSpacesToday.length]
-  );
+  const newSpacesTodayMemo = useMemo(() => newSpacesToday, [newSpacesToday]);
   const newSpacesTomorrowMemo = useMemo(
     () => newSpacesTomorrow,
-    [newSpacesTomorrow.length]
+    [newSpacesTomorrow]
   );
   const newSpacesOvermorrowMemo = useMemo(
     () => newSpacesOvermorrow,
-    [newSpacesOvermorrow.length]
+    [newSpacesOvermorrow]
   );
 
   function parseAvailability(str) {
@@ -244,7 +243,7 @@ export default function Main() {
     getSchedule("overmorrow");
   };
 
-  useInterval(getAllSchedules, 30000);
+  useInterval(getAllSchedules, 20000);
 
   useEffect(() => {
     getAllSchedules();
@@ -276,7 +275,6 @@ export default function Main() {
 
         if (newAvail >= spotsWanted) {
           availableSpots.push(newItem);
-          console.log({ oldItem, newItem });
         }
       }
     });
@@ -285,13 +283,14 @@ export default function Main() {
   };
 
   const notifyNewSpaces = (newSpaces, newSpaceSetter) => {
+    const newSpacesArray = [];
     for (let newSpace of newSpaces) {
       const notifySlot = notifySlots.get(newSpace.id);
-      console.log({ newSpace, notifySlot });
       if (notifySlot) {
-        newSpaceSetter(newSpace);
+        newSpacesArray.push(newSpace);
       }
     }
+    newSpaceSetter(newSpacesArray);
   };
 
   const getSchedule = async (parseDate) => {
