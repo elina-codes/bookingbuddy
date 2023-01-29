@@ -14,15 +14,13 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/bb-icon.png",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.goldin.bookingchecker"
@@ -34,6 +32,18 @@
       "eas": {
         "projectId": "7e1c643a-4bf3-4d8f-9296-145167a54967"
       }
-    }
+    },
+    "notification": {
+      "icon": "./assets/bb-icon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/bb-icon.png"
+        }
+      ]
+    ],
+    "platforms": ["ios", "android"]
   }
 }

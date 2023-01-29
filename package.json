@@ -14,6 +14,7 @@
     "@types/react-native": "~0.70.6",
     "axios": "^1.2.3",
     "expo": "^47.0.13",
+    "expo-asset": "~8.7.0",
     "expo-device": "~5.0.0",
     "expo-font": "~11.0.1",
     "expo-linear-gradient": "~12.0.1",

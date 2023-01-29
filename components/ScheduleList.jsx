@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
 import * as RNP from "react-native-paper";
 import ScheduleListItem from "./ScheduleListItem";

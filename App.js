@@ -1,5 +1,4 @@
-import * as RNP from "react-native-paper";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -14,6 +13,7 @@ import axios from "axios";
 import {
   formattedDate,
   isToday,
+  isTodayTomorrowOvermorrow,
   isTomorrow,
   overmorrowFormatted,
   todayFormatted,
@@ -48,7 +48,24 @@ export default function Main() {
   const [newSpacesTomorrow, setNewSpacesTomorrow] = useState([]);
   const [newSpacesOvermorrow, setNewSpacesOvermorrow] = useState([]);
 
+  const [tabBadges, setTabBadges] = useState(new Set());
   const [expoPushToken, setExpoPushToken] = useState("");
+
+  const addTabBadges = (tab) => {
+    setTabBadges((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(tab);
+      return newSet;
+    });
+  };
+
+  const removeTabBadge = (tab) => {
+    setTabBadges((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(tab);
+      return newSet;
+    });
+  };
 
   const dayFuncMap = new Map([
     [
@@ -92,11 +109,44 @@ export default function Main() {
     ],
   ]);
 
+  // useEffect(() => {
+  //   if (notification?.request?.content?.data?.tab) {
+  //     console.log(JSON.stringify(notification.request.content.data.tab));
+  //     setDateToShow(JSON.stringify(notification.request.content.data.tab));
+  //   }
+  // }, [notification]);
+
   const currentTab = dayFuncMap.get(dateToShow);
 
   const updateTheme = () => {
     setCurrentTheme((prev) => (prev === "default" ? "blue" : "default"));
   };
+
+  const storeTheme = async (value) => {
+    try {
+      await AsyncStorage.setItem("theme", value);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    storeTheme(currentTheme);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    const getTheme = async () => {
+      try {
+        const value = await AsyncStorage.getItem("theme");
+        if (value !== null) {
+          setCurrentTheme(value);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    getTheme();
+  }, []);
 
   const registerForPushNotificationsAsync = async () => {
     let token;
@@ -134,6 +184,25 @@ export default function Main() {
     registerForPushNotificationsAsync().then((token) =>
       setExpoPushToken(token)
     );
+
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        const tab = notification?.request?.content?.data?.tab;
+        if (tab) {
+          addTabBadges(tab);
+        }
+      }
+    );
+
+    const receivedSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const tab = response?.notification?.request?.content?.data?.tab;
+        if (tab) setDateToShow(tab);
+      });
+    return () => {
+      receivedSubscription.remove();
+      subscription.remove();
+    };
   }, []);
 
   Notifications.setNotificationHandler({
@@ -144,18 +213,20 @@ export default function Main() {
     }),
   });
 
-  // Can use this function below OR use Expo's Push Notification Tool from: https://expo.dev/notifications
-  const sendPushNotification = async (spacesDay) => {
-    if (spacesDay.length) {
-      console.log("Sending push notification...", spacesDay);
-      const body = spacesDay
-        .map((item) => {
-          let { date, availability, slot } = item;
+  const sendPushNotification = async (spaces = []) => {
+    if (spaces.length) {
+      console.log("Sending push notification...", spaces);
+      const body = spaces
+        .map((item = {}) => {
+          let { date, availability, slot } = item || {};
           if (isToday(date)) {
             date = "Today";
-          }
-          if (isTomorrow(date)) {
+          } else if (isTomorrow(date)) {
             date = "Tomorrow";
+          } else if (isOvermorrow(date)) {
+            date = date.toLocaleDateString("en-US", { weekday: "long" });
+          } else {
+            date = "";
           }
 
           return `${date}: ${availability} from ${slot}`;
@@ -167,6 +238,11 @@ export default function Main() {
         sound: "default",
         title: `New Hive spaces available! 🎉`,
         body,
+        data: {
+          tab: spaces.length
+            ? isTodayTomorrowOvermorrow(spaces[0].date)
+            : "today",
+        },
       };
 
       try {
@@ -236,18 +312,6 @@ export default function Main() {
     if (newSpacesOvermorrowMemo.length && notifySlots.size)
       sendPushNotification(newSpacesOvermorrowMemo);
   }, [newSpacesOvermorrowMemo]);
-
-  const getAllSchedules = () => {
-    getSchedule("today");
-    getSchedule("tomorrow");
-    getSchedule("overmorrow");
-  };
-
-  useInterval(getAllSchedules, 20000);
-
-  useEffect(() => {
-    getAllSchedules();
-  }, []);
 
   const checkAvailabilityChange = (oldSchedule, newSchedule, spotsWanted) => {
     const availableSpots = [];
@@ -371,6 +435,22 @@ export default function Main() {
     }
   };
 
+  const getAllSchedules = () => {
+    getSchedule("today");
+    getSchedule("tomorrow");
+    getSchedule("overmorrow");
+  };
+
+  useInterval(getAllSchedules, 20000);
+
+  useEffect(() => {
+    getAllSchedules();
+  }, []);
+
+  useEffect(() => {
+    removeTabBadge(dateToShow);
+  }, [dateToShow]);
+
   const onTabChange = (day) => {
     setDateToShow(day);
   };
@@ -403,7 +483,16 @@ export default function Main() {
             }}
           />
           <View>
-            <ScheduleTabs {...{ onTabChange, dateToShow, currentTheme }} />
+            <ScheduleTabs
+              {...{
+                onTabChange,
+                dateToShow,
+                currentTheme,
+                showTodayBadge: tabBadges.has("today"),
+                showTomorrowBadge: tabBadges.has("tomorrow"),
+                showOvermorrowBadge: tabBadges.has("overmorrow"),
+              }}
+            />
           </View>
         </View>
       </SafeAreaProvider>

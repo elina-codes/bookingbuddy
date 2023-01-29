@@ -3,12 +3,7 @@ import * as RNP from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import { useAppTheme } from "../common/theme";
 
-export default function NotificationsSection({
-  isNotifyAllOn,
-  setSpotsWanted,
-  spotsWanted,
-  toggleNotifications,
-}) {
+export default function NotificationsSection({ setSpotsWanted, spotsWanted }) {
   const theme = useAppTheme();
 
   return (

@@ -1,84 +1,51 @@
-import * as RNP from "react-native-paper";
 import { blueGradient, redGradient, useAppTheme } from "../common/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { formattedDate, overmorrow, tomorrow } from "../common/helpers";
+import { View } from "react-native";
+import ScheduleTab from "./ScheduleTab";
 
 export default function ScheduleTabs({
-  onTabChange,
-  dateToShow,
   currentTheme,
+  showTodayBadge,
+  showTomorrowBadge,
+  showOvermorrowBadge,
+  ...props
 }) {
-  const theme = useAppTheme();
-
-  const getOvermorrowDate = () => {
-    var today = new Date();
-    var overmorrow = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
-    var options = { month: "short", day: "numeric" };
-    return overmorrow.toLocaleDateString("en-US", options);
-  };
-
-  const style = {
-    borderColor: theme.colors.tertiary,
-    borderRadius: 0,
-    borderWidth: 0,
-    justifyContent: "center",
-    height: 50,
-  };
-
-  const contentStyle = {
-    height: 50,
-    borderRadius: 0,
-  };
-
   return (
     <LinearGradient
       colors={currentTheme === "default" ? redGradient : blueGradient}
       start={{ x: 0, y: 6 }}
       end={{ x: 1.4, y: 0 }}
     >
-      <RNP.SegmentedButtons
-        value={dateToShow}
-        onValueChange={onTabChange}
-        style={{ borderRadius: 0 }}
-        buttons={[
-          {
+      <View style={{ flexDirection: "row", height: 50 }}>
+        <ScheduleTab
+          {...{
             label: "Today",
             value: "today",
-            textColor: theme.colors.primary,
-            contentStyle,
-            style: {
-              ...style,
-              backgroundColor:
-                dateToShow === "today" ? "rgba(30,30,30,0.8)" : "transparent",
-            },
-          },
-          {
-            label: "Tomorrow",
+            showBadge: showTodayBadge,
+            currentTheme,
+            ...props,
+          }}
+        />
+        <ScheduleTab
+          {...{
+            label: formattedDate(tomorrow, true),
             value: "tomorrow",
-            contentStyle,
-            textColor: theme.colors.primary,
-            style: {
-              ...style,
-              backgroundColor:
-                dateToShow === "tomorrow"
-                  ? "rgba(30,30,30,0.8)"
-                  : "transparent",
-            },
-          },
-          {
-            label: getOvermorrowDate(),
+            showBadge: showTomorrowBadge,
+            currentTheme,
+            ...props,
+          }}
+        />
+        <ScheduleTab
+          {...{
+            label: formattedDate(overmorrow, true),
             value: "overmorrow",
-            contentStyle,
-            textColor: theme.colors.primary,
-            style: {
-              ...style,
-              backgroundColor:
-                dateToShow === "overmorrow"
-                  ? "rgba(30,30,30,0.8)"
-                  : "transparent",
-            },
-          },
-        ]}
-      />
+            showBadge: showOvermorrowBadge,
+            currentTheme,
+            ...props,
+          }}
+        />
+      </View>
     </LinearGradient>
   );
 }

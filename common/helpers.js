@@ -1,14 +1,19 @@
 /* DATES */
 
-export const formattedDate = (date) => {
-  const localized = date
-    .toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .split("/");
-  return `${localized[2]}-${localized[0]}-${localized[1]}`;
+export const formattedDate = (date, long) => {
+  if (long) {
+    const options = { month: "short", day: "numeric", weekday: "short" };
+    return date.toLocaleDateString("en-US", options);
+  } else {
+    const localized = date
+      .toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .split("/");
+    return `${localized[2]}-${localized[0]}-${localized[1]}`;
+  }
 };
 
 export const today = new Date();
@@ -24,5 +29,17 @@ export const isTomorrow = (date) =>
   new Date(date).getDate() == tomorrow.getDate();
 export const isOvermorrow = (date) =>
   new Date(date).getDate() == overmorrow.getDate();
+
+export const isTodayTomorrowOvermorrow = (date) => {
+  if (isToday(date)) {
+    return "today";
+  } else if (isTomorrow(date)) {
+    return "tomorrow";
+  } else if (isOvermorrow(date)) {
+    return "overmorrow";
+  } else {
+    return formattedDate(date, true);
+  }
+};
 
 /* STRINGS */

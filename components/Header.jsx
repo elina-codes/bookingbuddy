@@ -20,13 +20,12 @@ export default function Header({ currentTheme, updateTheme }) {
     >
       <RNP.Appbar.Header
         style={{
-          // backgroundColor: theme.colors.onTertiary,
           backgroundColor: "transparent",
           backgroundImage: theme.colors.gradient,
         }}
       >
         <RNP.Appbar.Content
-          title="Hive Booking Buddy"
+          title="Hive Vancouver"
           color={theme.colors.inverseSurface}
         />
         <RNP.Appbar.Action
