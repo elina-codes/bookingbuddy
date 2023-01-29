@@ -1,4 +1,3 @@
-import { useState } from "react";
 import * as RNP from "react-native-paper";
 import { View, Pressable } from "react-native";
 import { useAppTheme } from "../common/theme";
@@ -11,12 +10,10 @@ export default function ScheduleTab({
   dateToShow,
   currentTheme,
 }) {
-  const [isBadgeVisible, setBadgeVisible] = useState(showBadge);
   const theme = useAppTheme();
   return (
     <Pressable
       onPress={() => {
-        setBadgeVisible(false);
         onTabChange(value);
       }}
       textColor={theme.colors.inverseSurface}
@@ -40,7 +37,7 @@ export default function ScheduleTab({
       <View style={{ width: 14 }}>
         <RNP.Badge
           size={10}
-          visible={isBadgeVisible}
+          visible={showBadge}
           style={{
             backgroundColor:
               currentTheme === "default"

@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import {
   formattedDate,
+  isOvermorrow,
   isToday,
   isTodayTomorrowOvermorrow,
   isTomorrow,
@@ -50,6 +51,8 @@ export default function Main() {
 
   const [tabBadges, setTabBadges] = useState(new Set());
   const [expoPushToken, setExpoPushToken] = useState("");
+
+  const checkTabBadges = (tab) => tabBadges.has(tab);
 
   const addTabBadges = (tab) => {
     setTabBadges((prev) => {
@@ -108,13 +111,6 @@ export default function Main() {
       },
     ],
   ]);
-
-  // useEffect(() => {
-  //   if (notification?.request?.content?.data?.tab) {
-  //     console.log(JSON.stringify(notification.request.content.data.tab));
-  //     setDateToShow(JSON.stringify(notification.request.content.data.tab));
-  //   }
-  // }, [notification]);
 
   const currentTab = dayFuncMap.get(dateToShow);
 
@@ -240,7 +236,7 @@ export default function Main() {
         body,
         data: {
           tab: spaces.length
-            ? isTodayTomorrowOvermorrow(spaces[0].date)
+            ? isTodayTomorrowOvermorrow(spaces?.[0]?.date)
             : "today",
         },
       };
@@ -488,9 +484,9 @@ export default function Main() {
                 onTabChange,
                 dateToShow,
                 currentTheme,
-                showTodayBadge: tabBadges.has("today"),
-                showTomorrowBadge: tabBadges.has("tomorrow"),
-                showOvermorrowBadge: tabBadges.has("overmorrow"),
+                showTodayBadge: checkTabBadges("today"),
+                showTomorrowBadge: checkTabBadges("tomorrow"),
+                showOvermorrowBadge: checkTabBadges("overmorrow"),
               }}
             />
           </View>
