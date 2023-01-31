@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
+import * as RNP from "react-native-paper";
 import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
@@ -16,15 +17,40 @@ import {
   tomorrowFormatted,
 } from "../common/helpers";
 
+import * as Linking from "expo-linking";
 import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
 import { getRequestData, links } from "../common/constants";
+import { ThemeContext } from "../common/ThemeContext";
 
-export default function Schedule({ currentTheme, facility }) {
+export default function Schedule({ route, navigation }) {
+  const { setCurrentTheme } = useContext(ThemeContext);
+
   const theme = useAppTheme();
+  const { facility, currentTheme } = route.params || {};
+
+  const onWebsitePress = () => {
+    Linking.openURL(links[facility]);
+  };
+  useEffect(() => {
+    navigation.setOptions({
+      title: facility,
+      headerRight: () => (
+        <RNP.Appbar.Action
+          icon="open-in-new"
+          color={theme.colors.inverseSurface}
+          onPress={onWebsitePress}
+        />
+      ),
+    });
+  }, [navigation]);
+
+  useEffect(() => {
+    setCurrentTheme(currentTheme);
+  }, [currentTheme]);
 
   const [dateToShow, setDateToShow] = useState("today");
   const [notifySlots, setNotifySlots] = useState(new Map([]));

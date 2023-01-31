@@ -1,3 +1,16 @@
+import { blueGradient, greyGradient, redGradient } from "../common/theme";
+
+/* THEME */
+export const getTheme = (currentTheme) => {
+  if (currentTheme === "default") {
+    return greyGradient;
+  } else if (currentTheme === "red") {
+    return redGradient;
+  } else if (currentTheme === "blue") {
+    return blueGradient;
+  }
+};
+
 /* DATES */
 
 export const formattedDate = (date, long) => {

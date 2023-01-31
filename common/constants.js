@@ -1,6 +1,11 @@
 export const facilities = ["Hive Vancouver", "Hive Heights"];
 export const scheduleDays = ["today", "tomorrow", "overmorrow"];
 
+export const facilityColors = {
+  [facilities[0]]: "blue",
+  [facilities[1]]: "red",
+};
+
 export const links = {
   "Hive Vancouver":
     "https://app.rockgympro.com/b/widget/?a=offering&offering_guid=1c7052e4cd1c44469569ef7fea299ddd&widget_guid=2224a8b95d0e4ca7bf20012ec34b8f3e&random=63cf60713e8cf&iframeid=&mode=p",
