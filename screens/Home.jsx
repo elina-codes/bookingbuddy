@@ -1,11 +1,10 @@
-import { LinearGradient } from "expo-linear-gradient";
-import { Image, Pressable, View } from "react-native";
+import { ScrollView } from "react-native";
 import * as RNP from "react-native-paper";
-import { facilities } from "../common/constants";
-import { blueGradient, redGradient, useAppTheme } from "../common/theme";
+import { facilities, facilityIcons } from "../common/constants";
+import { useAppTheme } from "../common/theme";
 import { useAssets } from "expo-asset";
 
-export default function Home({ navigation, currentTheme }) {
+export default function Home({ navigation }) {
   const theme = useAppTheme();
   const [assets, error] = useAssets([
     require("../assets/crashpad.png"),
@@ -13,15 +12,13 @@ export default function Home({ navigation, currentTheme }) {
   ]);
 
   return (
-    <View
+    <ScrollView
       style={{
         backgroundColor: theme.colors.background,
         flex: 1,
       }}
     >
-      <RNP.List.Section
-      // style={{ justifyContent: "center", padding: 5, flex: 1 }}
-      >
+      <RNP.List.Section>
         {Object.values(facilities).map((facility, i) => {
           let title = facility;
           let description = "";
@@ -38,6 +35,14 @@ export default function Home({ navigation, currentTheme }) {
                 description,
                 descriptionStyle: { opacity: 0.6 },
                 key: facility,
+                left: (props) =>
+                  facilityIcons[facility] && (
+                    <RNP.List.Icon
+                      {...props}
+                      icon={facilityIcons[facility]}
+                      color={theme.colors.inverseOnSurface}
+                    />
+                  ),
                 right: (props) => (
                   <RNP.List.Icon {...props} icon="chevron-right" />
                 ),
@@ -46,6 +51,6 @@ export default function Home({ navigation, currentTheme }) {
           );
         })}
       </RNP.List.Section>
-    </View>
+    </ScrollView>
   );
 }

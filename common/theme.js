@@ -88,7 +88,7 @@ export const theme = {
     shadow: "rgb(0, 0, 0)",
     scrim: "rgb(0, 0, 0)",
     inverseSurface: "rgb(228, 227, 219)",
-    inverseOnSurface: "rgb(48, 49, 44)",
+    inverseOnSurface: "rgb(148, 149, 144)",
     inversePrimary: "rgb(73, 104, 13)",
     success: "#a8eb12",
     warning: "rgb(255, 191, 0)",
@@ -179,5 +179,4 @@ export const blueTheme = {
   },
 };
 
-export const useAppTheme = (option = theme) =>
-  useTheme(option === "default" ? theme : blueTheme);
+export const useAppTheme = () => useTheme(theme);

@@ -23,14 +23,14 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
-import { getRequestData, links } from "../common/constants";
+import { getRequestData, bookingLinks } from "../common/constants";
 
 export default function Schedule({ route, navigation }) {
   const theme = useAppTheme();
   const { facility } = route.params || {};
 
   const onWebsitePress = () => {
-    Linking.openURL(links[facility]);
+    Linking.openURL(bookingLinks[facility]);
   };
   useEffect(() => {
     navigation.setOptions({
@@ -369,7 +369,7 @@ export default function Schedule({ route, navigation }) {
         Connection: "keep-alive",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         Origin: "https://app.rockgympro.com",
-        Referer: links[facility],
+        Referer: bookingLinks[facility],
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
