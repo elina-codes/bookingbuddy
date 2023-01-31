@@ -24,13 +24,10 @@ import * as Notifications from "expo-notifications";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
 import { getRequestData, links } from "../common/constants";
-import { ThemeContext } from "../common/ThemeContext";
 
 export default function Schedule({ route, navigation }) {
-  const { setCurrentTheme } = useContext(ThemeContext);
-
   const theme = useAppTheme();
-  const { facility, currentTheme } = route.params || {};
+  const { facility } = route.params || {};
 
   const onWebsitePress = () => {
     Linking.openURL(links[facility]);
@@ -47,10 +44,6 @@ export default function Schedule({ route, navigation }) {
       ),
     });
   }, [navigation]);
-
-  useEffect(() => {
-    setCurrentTheme(currentTheme);
-  }, [currentTheme]);
 
   const [dateToShow, setDateToShow] = useState("today");
   const [notifySlots, setNotifySlots] = useState(new Map([]));
@@ -274,6 +267,7 @@ export default function Schedule({ route, navigation }) {
     let match;
     const availability = [];
     while ((match = regex.exec(str))) {
+      match[2] = match[2].split("<")[0];
       availability.push({
         date: `${match[1]}-${match[2]}`,
         availability: match[3],
@@ -397,6 +391,7 @@ export default function Schedule({ route, navigation }) {
       );
       const resp = response.data.event_list_html;
       const resp_array = parseAvailability(resp);
+
       const result = resp_array.map((item) => {
         const splitItem = item.date.split(",");
         const itemDate = new Date(
@@ -471,7 +466,6 @@ export default function Schedule({ route, navigation }) {
           {...{
             onTabChange,
             dateToShow,
-            currentTheme,
             showTodayBadge: checkTabBadges("today"),
             showTomorrowBadge: checkTabBadges("tomorrow"),
             showOvermorrowBadge: checkTabBadges("overmorrow"),

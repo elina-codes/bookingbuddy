@@ -1,10 +1,8 @@
-import { blueGradient, greyGradient, redGradient } from "../common/theme";
+import { blueGradient, redGradient } from "../common/theme";
 
 /* THEME */
-export const getTheme = (currentTheme) => {
+export const getThemeGradient = (currentTheme) => {
   if (currentTheme === "default") {
-    return greyGradient;
-  } else if (currentTheme === "red") {
     return redGradient;
   } else if (currentTheme === "blue") {
     return blueGradient;

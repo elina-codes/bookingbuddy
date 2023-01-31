@@ -1,20 +1,23 @@
 import { LinearGradient } from "expo-linear-gradient";
 import {
   formattedDate,
-  getTheme,
+  getThemeGradient,
   overmorrow,
   tomorrow,
 } from "../common/helpers";
 import { View } from "react-native";
 import ScheduleTab from "./ScheduleTab";
+import { ThemeContext } from "../common/ThemeContext";
+import { useContext } from "react";
 
 export default function ScheduleTabs({
-  currentTheme = "default",
   showTodayBadge,
   showTomorrowBadge,
   showOvermorrowBadge,
   ...props
 }) {
+  const { currentTheme } = useContext(ThemeContext);
+
   const tabs = [
     {
       label: "Today",
@@ -35,7 +38,7 @@ export default function ScheduleTabs({
 
   return (
     <LinearGradient
-      colors={getTheme(currentTheme)}
+      colors={getThemeGradient(currentTheme)}
       start={{ x: 0, y: 6 }}
       end={{ x: 1.4, y: 0 }}
     >

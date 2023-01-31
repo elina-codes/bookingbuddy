@@ -2,8 +2,8 @@ import { createContext, useState } from "react";
 
 export const ThemeContext = createContext();
 
-export default function ThemeProvider({ children, defaultTheme = "" }) {
-  const [currentTheme, setCurrentTheme] = useState(defaultTheme);
+export default function ThemeProvider({ children }) {
+  const [currentTheme, setCurrentTheme] = useState("default");
 
   return (
     <ThemeContext.Provider value={{ currentTheme, setCurrentTheme }}>

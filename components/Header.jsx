@@ -3,7 +3,7 @@ import * as RNP from "react-native-paper";
 import { useAppTheme } from "../common/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "../common/ThemeContext";
-import { getTheme } from "../common/helpers";
+import { getThemeGradient } from "../common/helpers";
 
 export default function Header() {
   const { currentTheme } = useContext(ThemeContext);
@@ -11,7 +11,7 @@ export default function Header() {
 
   return (
     <LinearGradient
-      colors={getTheme(currentTheme || "default")}
+      colors={getThemeGradient(currentTheme)}
       start={{ x: 0, y: 2 }}
       end={{ x: 1, y: 0 }}
     >

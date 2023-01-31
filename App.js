@@ -9,11 +9,11 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ScheduleScreen from "./screens/Schedule";
 import HomeScreen from "./screens/Home";
 import Header from "./components/Header";
-import { useState, useContext } from "react";
+import { useContext } from "react";
 
 const Stack = createNativeStackNavigator();
 
-const ThemeButton = () => {
+function ThemeButton() {
   const { setCurrentTheme } = useContext(ThemeContext);
   const theme = useAppTheme();
 
@@ -28,7 +28,7 @@ const ThemeButton = () => {
       onPress={updateTheme}
     />
   );
-};
+}
 
 export default function App() {
   const theme = useAppTheme();
@@ -46,7 +46,7 @@ export default function App() {
   // }, [currentTheme]);
 
   // useEffect(() => {
-  //   const getTheme = async () => {
+  //   const getThemeGradient = async () => {
   //     try {
   //       const value = await AsyncStorage.getItem("theme");
   //       if (value !== null) {
@@ -56,7 +56,7 @@ export default function App() {
   //       console.error(e);
   //     }
   //   };
-  //   getTheme();
+  //   getThemeGradient();
   // }, []);
 
   return (
@@ -76,7 +76,7 @@ export default function App() {
                 name="Home"
                 component={HomeScreen}
                 options={{
-                  title: "Choose a facility",
+                  title: "Select a schedule",
                 }}
               />
               <Stack.Screen

@@ -15,25 +15,24 @@ export default function ScheduleListItem({ data, notify, updateNotifySlots }) {
     setIsNotifyOn(notify);
   }, [notify]);
 
-  const availabilityColorMap = (availability) => {
-    switch (availability) {
-      case "Full":
-        return theme.colors.errorContainer;
-      case "Available":
-        return theme.colors.success;
-      default:
-        return theme.colors.warning;
-    }
-  };
-
   const availabilityIconMap = (availability) => {
-    switch (availability) {
-      case "Full":
-        return "block-helper";
-      case "Available":
-        return "check-circle";
-      default:
-        return "alert-circle";
+    const spaces = parseInt(availability.split(" ")[0]);
+    const hasFewSpaces = !isNaN(spaces) && spaces < 5;
+    if (availability === "Full") {
+      return {
+        color: theme.colors.errorContainer,
+        icon: "block-helper",
+      };
+    } else if (hasFewSpaces) {
+      return {
+        color: theme.colors.warning,
+        icon: "alert-circle",
+      };
+    } else {
+      return {
+        color: theme.colors.success,
+        icon: "check-circle",
+      };
     }
   };
 
@@ -45,13 +44,15 @@ export default function ScheduleListItem({ data, notify, updateNotifySlots }) {
       description={availability}
       rippleColor="transparent"
       style={{ paddingTop: 0, paddingBottom: 0 }}
-      left={(props) => (
-        <RNP.List.Icon
-          {...props}
-          color={availabilityColorMap(availability)}
-          icon={availabilityIconMap(availability)}
-        />
-      )}
+      left={(props) => {
+        return (
+          <RNP.List.Icon
+            {...props}
+            color={availabilityIconMap(availability).color}
+            icon={availabilityIconMap(availability).icon}
+          />
+        );
+      }}
       right={(props) => (
         <RNP.IconButton
           {...props}

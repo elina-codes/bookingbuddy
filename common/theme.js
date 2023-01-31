@@ -10,16 +10,7 @@ export const redGradient = [
   "#ff692e",
   "#ff970f",
 ];
-export const greyGradient = [
-  "#051937",
-  "#004d7a",
-  "#008793",
-  "#00bf72",
-  "#ff970f",
-  "#ff692e",
-  "#f63741",
-  "#db0054",
-];
+export const greyGradient = ["#000", "#6a6a6a"];
 
 // "#000066",
 // "#57006b",
