@@ -38,13 +38,17 @@ export const NotifyProvider = ({ children }) => {
     });
   };
 
+  const clearNotifyMap = () => {
+    setNotifyMap(new Map([]));
+  };
+
   const addFacilityTabBadge = (facility, tab) => {
     setFacilityTabBadges((prev) => {
       const newMap = new Map(prev);
       const currentTabs = newMap.get(facility);
       const newSet = new Set(currentTabs);
       newSet.add(tab);
-      newMap.set(facility, currentTabs);
+      newMap.set(facility, newSet);
       return newMap;
     });
   };
@@ -55,13 +59,9 @@ export const NotifyProvider = ({ children }) => {
       const currentTabs = newMap.get(facility);
       const newSet = new Set(currentTabs);
       newSet.delete(tab);
-      newMap.set(facility, currentTabs);
+      newMap.set(facility, newSet);
       return newMap;
     });
-  };
-
-  const clearNotifyMap = () => {
-    setNotifyMap(new Map([]));
   };
 
   return (

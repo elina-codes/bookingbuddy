@@ -12,38 +12,34 @@ import {
   isTodayTomorrowOvermorrow,
   isTomorrow,
   getSchedule,
+  formattedDate,
 } from "./common/helpers";
-import { Platform, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "./common/hooks/useInterval";
 import { useNavigation } from "@react-navigation/native";
+import Settings from "./screens/Settings";
 
 const Stack = createNativeStackNavigator();
 
-function ThemeButton() {
-  const { setCurrentTheme } = useContext(ThemeContext);
+export default function Main() {
   const theme = useAppTheme();
+  const navigation = useNavigation();
+  const {
+    notifyMap,
+    clearNotifyMap,
+    deleteNotifyMap,
+    updateNotifyMap,
+    addFacilityTabBadge,
+  } = useContext(NotifyContext);
+  const { setCurrentTheme } = useContext(ThemeContext);
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
+
   const updateTheme = () => {
     setCurrentTheme((prev) => (prev === "default" ? "blue" : "default"));
   };
-
-  return (
-    <RNP.Appbar.Action
-      icon="palette"
-      color={theme.colors.inverseSurface}
-      onPress={updateTheme}
-    />
-  );
-}
-
-export default function Main() {
-  const theme = useAppTheme();
-  const [expoPushToken, setExpoPushToken] = useState("");
-
-  const { notifyMap, clearNotifyMap, updateNotifyMap, addFacilityTabBadge } =
-    useContext(NotifyContext);
-  const navigation = useNavigation();
 
   // const storeTheme = async (value) => {
   //   try {
@@ -162,7 +158,7 @@ export default function Main() {
       const message = {
         to: expoPushToken,
         sound: "default",
-        title: `New spaces available for ${facility}! 🎉`,
+        title: `New availability for ${facility}! 🎉`,
         body,
         data: {
           facility,
@@ -190,7 +186,7 @@ export default function Main() {
 
   const checkForNewAvailability = useCallback(() => {
     if (notifyMap.size) {
-      console.log("PARSING AT APP LEVEL", [...notifyMap.entries()]);
+      console.log("PARSING AT APP LEVEL", [...notifyMap]);
       const facilityDateSet = new Set();
       [...notifyMap.keys()].forEach((id) => {
         const [facility, date] = id.split(",");
@@ -222,6 +218,10 @@ export default function Main() {
 
   useInterval(checkForNewAvailability, 20000);
 
+  const toggleSettingsModal = () => {
+    setIsSettingsModalVisible(!isSettingsModalVisible);
+  };
+
   return (
     <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       <Stack.Navigator
@@ -237,13 +237,15 @@ export default function Main() {
             headerRight: () => (
               <>
                 <RNP.Appbar.Action
-                  icon="bell-off"
+                  icon="cog"
                   color={theme.colors.inverseSurface}
-                  onPress={() => {
-                    clearNotifyMap();
-                  }}
+                  onPress={toggleSettingsModal}
                 />
-                <ThemeButton />
+                <RNP.Appbar.Action
+                  icon="palette"
+                  color={theme.colors.inverseSurface}
+                  onPress={updateTheme}
+                />
               </>
             ),
           }}
@@ -256,6 +258,15 @@ export default function Main() {
           })}
         />
       </Stack.Navigator>
+      <Settings
+        {...{
+          isSettingsModalVisible,
+          toggleSettingsModal,
+          notifyMap,
+          deleteNotifyMap,
+          clearNotifyMap,
+        }}
+      />
     </View>
   );
 }

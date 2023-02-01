@@ -8,6 +8,13 @@ import { useAppTheme } from "../common/theme";
 export default function Home({ navigation }) {
   const theme = useAppTheme();
   const { facilityTabBadges } = useContext(NotifyContext);
+
+  const hasBadges = (facility) => {
+    const facilityTabs = facilityTabBadges.get(facility);
+    console.log({ facilityTabs });
+    return facilityTabs?.size > 0;
+  };
+
   return (
     <ScrollView
       style={{
@@ -33,7 +40,7 @@ export default function Home({ navigation }) {
                     <RNP.Text>{title}</RNP.Text>
                     <View>
                       <RNP.Badge
-                        visible={facilityTabBadges.get(facility)?.size > 0}
+                        visible={hasBadges(facility)}
                         style={{ marginLeft: 5 }}
                         size={10}
                       />

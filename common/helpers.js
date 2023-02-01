@@ -153,7 +153,7 @@ export const normalizeAvailability = (item = {}) => {
 export function getChangedAvailability(notifyMap, newSchedule) {
   const availableSpots = [];
 
-  [...notifyMap.entries()].forEach((entry) => {
+  [...notifyMap].forEach((entry) => {
     const [id, { availability, spotsWanted }] = entry;
     const newItem = newSchedule.find((item) => item.id === id);
 
@@ -169,8 +169,6 @@ export function getChangedAvailability(notifyMap, newSchedule) {
 }
 
 export const getSchedule = async (facility, parseDate, notifyMap) => {
-  console.log("parsing...", parseDate, new Date().toLocaleTimeString());
-
   let date = todayFormatted;
   if (parseDate === "tomorrow") {
     date = tomorrowFormatted;

@@ -3,7 +3,7 @@ import { normalizeAvailability } from "../helpers";
 export function useAvailabilityDelta(notifyMap, newSchedule, spotsWanted) {
   const availableSpots = [];
 
-  [...notifyMap.entries()].forEach((entry) => {
+  [...notifyMap].forEach((entry) => {
     const [id, { availability }] = entry;
     const newItem = newSchedule.find((item) => item.id === id);
 

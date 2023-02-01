@@ -46,9 +46,9 @@ export default function Schedule({ route, navigation }) {
   const [spotsWantedTomorrow, setSpotsWantedTomorrow] = useState(1);
   const [spotsWantedOvermorrow, setSpotsWantedOvermorrow] = useState(1);
 
-  const checkTabBadges = (tab) => {
+  const checkTabBadges = (day) => {
     const facilityTabs = facilityTabBadges.get(facility);
-    return !!facilityTabs?.has(tab);
+    return !!facilityTabs?.has(day);
   };
 
   const currentScheduleTodayMemo = useMemo(
@@ -109,6 +109,7 @@ export default function Schedule({ route, navigation }) {
 
   useEffect(() => {
     getAllSchedules();
+    console.log({ tab, facility });
   }, []);
 
   useEffect(() => {
