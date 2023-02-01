@@ -1,16 +1,13 @@
-import { ScrollView } from "react-native";
+import { useContext } from "react";
+import { ScrollView, View } from "react-native";
 import * as RNP from "react-native-paper";
 import { facilities, facilityIcons } from "../common/constants";
+import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
-import { useAssets } from "expo-asset";
 
 export default function Home({ navigation }) {
   const theme = useAppTheme();
-  const [assets, error] = useAssets([
-    require("../assets/crashpad.png"),
-    require("../assets/rope.png"),
-  ]);
-
+  const { facilityTabBadges } = useContext(NotifyContext);
   return (
     <ScrollView
       style={{
@@ -24,14 +21,25 @@ export default function Home({ navigation }) {
           let description = "";
           if (facility.includes(":")) {
             const splitName = facility.split(": ");
-            title = splitName[1];
-            description = splitName[0];
+            title = splitName[0];
+            description = splitName[1];
           }
           return (
             <RNP.List.Item
               {...{
                 onPress: () => navigation.navigate("Schedule", { facility }),
-                title,
+                title: (
+                  <>
+                    <RNP.Text>{title}</RNP.Text>
+                    <View>
+                      <RNP.Badge
+                        visible={facilityTabBadges.get(facility)?.size > 0}
+                        style={{ marginLeft: 5 }}
+                        size={10}
+                      />
+                    </View>
+                  </>
+                ),
                 description,
                 descriptionStyle: { opacity: 0.6 },
                 key: facility,

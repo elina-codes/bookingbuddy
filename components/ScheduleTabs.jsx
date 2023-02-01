@@ -7,7 +7,7 @@ import {
 } from "../common/helpers";
 import { View } from "react-native";
 import ScheduleTab from "./ScheduleTab";
-import { ThemeContext } from "../common/ThemeContext";
+import { ThemeContext } from "../common/Context";
 import { useContext } from "react";
 
 export default function ScheduleTabs({

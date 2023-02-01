@@ -2,12 +2,7 @@ import { View, ScrollView, StyleSheet } from "react-native";
 import * as RNP from "react-native-paper";
 import ScheduleListItem from "./ScheduleListItem";
 
-export default function ScheduleList({
-  isNotifyAllOn,
-  currentSchedule,
-  notifySlots,
-  updateNotifySlots,
-}) {
+export default function ScheduleList({ currentSchedule, spotsWanted }) {
   return (
     <ScrollView>
       <RNP.List.Section>
@@ -19,9 +14,7 @@ export default function ScheduleList({
                 {...{
                   data: item,
                   key: id,
-                  isNotifyAllOn,
-                  notify: notifySlots.get(id),
-                  updateNotifySlots,
+                  spotsWanted,
                 }}
               />
             );

@@ -73,7 +73,7 @@ export const theme = {
     onTertiary: "rgb(184, 0, 95)",
     tertiaryContainer: "#008793",
     onTertiaryContainer: "#ffbf00",
-    error: "rgb(255, 180, 171)",
+    error: "rgb(246, 55, 65)",
     onError: "rgb(219, 0, 84)",
     errorContainer: "rgb(246, 55, 65)",
     onErrorContainer: "rgb(255, 180, 171)",

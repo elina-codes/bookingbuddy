@@ -1,19 +1,34 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import * as RNP from "react-native-paper";
+import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
 
-export default function ScheduleListItem({ data, notify, updateNotifySlots }) {
+export default function ScheduleListItem({ data, spotsWanted }) {
   const { availability, slot, id } = data;
   const theme = useAppTheme();
-  const [isNotifyOn, setIsNotifyOn] = useState(notify);
+  const { notifyMap, updateNotifyMap, deleteNotifyMap } =
+    useContext(NotifyContext);
+  const [isNotifyOn, setIsNotifyOn] = useState(notifyMap.has(id));
 
   const toggleNotifications = () => {
-    updateNotifySlots(id, !notify);
+    if (notifyMap.has(id)) {
+      deleteNotifyMap(id);
+      setIsNotifyOn(false);
+    } else {
+      updateNotifyMap(id, slot, availability, parseInt(spotsWanted));
+      setIsNotifyOn(true);
+    }
   };
 
   useEffect(() => {
-    setIsNotifyOn(notify);
-  }, [notify]);
+    if (notifyMap.has(id)) {
+      updateNotifyMap(id, slot, availability, parseInt(spotsWanted));
+    }
+  }, [spotsWanted]);
+
+  useEffect(() => {
+    setIsNotifyOn(notifyMap.get(id));
+  }, [notifyMap.get(id)]);
 
   const availabilityIconMap = (availability) => {
     const spaces = parseInt(availability.split(" ")[0]);
@@ -42,6 +57,7 @@ export default function ScheduleListItem({ data, notify, updateNotifySlots }) {
       descriptionStyle={availability === "Full" ? { opacity: 0.5 } : {}}
       title={slot}
       description={availability}
+      onPress={toggleNotifications}
       rippleColor="transparent"
       style={{ paddingTop: 0, paddingBottom: 0 }}
       left={(props) => {
@@ -56,7 +72,7 @@ export default function ScheduleListItem({ data, notify, updateNotifySlots }) {
       right={(props) => (
         <RNP.IconButton
           {...props}
-          onPress={toggleNotifications}
+          // onPress={toggleNotifications}
           icon={isNotifyOn ? "bell" : "bell-off-outline"}
           iconColor={
             isNotifyOn ? theme.colors.primary : theme.colors.surfaceVariant

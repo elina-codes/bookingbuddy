@@ -2,7 +2,7 @@ import { useContext } from "react";
 import * as RNP from "react-native-paper";
 import { useAppTheme } from "../common/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { ThemeContext } from "../common/ThemeContext";
+import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";
 
 export default function Header() {
