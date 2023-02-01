@@ -2,9 +2,18 @@ import { View, StyleSheet } from "react-native";
 import * as RNP from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import { useAppTheme } from "../common/theme";
+import { bookingLinks } from "../common/constants";
 
-export default function NotificationsSection({ setSpotsWanted, spotsWanted }) {
+export default function NotificationsSection({
+  setSpotsWanted,
+  spotsWanted,
+  facility,
+}) {
   const theme = useAppTheme();
+
+  const onWebsitePress = () => {
+    Linking.openURL(bookingLinks[facility]);
+  };
 
   return (
     <>
@@ -38,14 +47,12 @@ export default function NotificationsSection({ setSpotsWanted, spotsWanted }) {
               <Picker.Item label="4" value="4" />
             </Picker>
           </View>
-          {/* <RNP.Switch value={isNotifyAllOn} onValueChange={toggleNotifications} /> */}
         </View>
-        {/* <RNP.Button
-          icon={isNotifyAllOn ? "bell-off-outline" : "bell"}
-          onPress={toggleNotifications}
-        >
-          Toggle All {isNotifyAllOn ? "OFF" : "ON"}
-        </RNP.Button> */}
+        <RNP.IconButton
+          icon="open-in-new"
+          color={theme.colors.inverseSurface}
+          onPress={onWebsitePress}
+        />
       </View>
       <RNP.Divider />
     </>

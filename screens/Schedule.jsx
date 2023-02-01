@@ -9,7 +9,7 @@ import { getSchedule } from "../common/helpers";
 import * as Linking from "expo-linking";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
-import { bookingLinks, scheduleDays } from "../common/constants";
+import { scheduleDays } from "../common/constants";
 import { NotifyContext } from "../common/Context";
 
 export default function Schedule({ route, navigation }) {
@@ -19,19 +19,9 @@ export default function Schedule({ route, navigation }) {
   const { deleteFacilityTabBadge, facilityTabBadges } =
     useContext(NotifyContext);
 
-  const onWebsitePress = () => {
-    Linking.openURL(bookingLinks[facility]);
-  };
   useEffect(() => {
     navigation.setOptions({
       title: facility,
-      headerRight: () => (
-        <RNP.Appbar.Action
-          icon="open-in-new"
-          color={theme.colors.inverseSurface}
-          onPress={onWebsitePress}
-        />
-      ),
     });
   }, [navigation]);
 
@@ -131,6 +121,7 @@ export default function Schedule({ route, navigation }) {
         {...{
           spotsWanted: dayFuncMap.get(dateToShow).spotsWanted,
           setSpotsWanted: dayFuncMap.get(dateToShow).setSpotsWanted,
+          facility,
         }}
       />
       <ScheduleList

@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";
 
-export default function Header() {
+export default function Header({ children }) {
   const { currentTheme } = useContext(ThemeContext);
   const theme = useAppTheme();
 
@@ -20,7 +20,9 @@ export default function Header() {
           backgroundColor: "transparent",
           backgroundImage: theme.colors.gradient,
         }}
-      />
+      >
+        {children}
+      </RNP.Appbar.Header>
     </LinearGradient>
   );
 }

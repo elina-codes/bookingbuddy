@@ -11,7 +11,6 @@ export default function Home({ navigation }) {
 
   const hasBadges = (facility) => {
     const facilityTabs = facilityTabBadges.get(facility);
-    console.log({ facilityTabs });
     return facilityTabs?.size > 0;
   };
 

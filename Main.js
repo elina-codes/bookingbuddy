@@ -37,8 +37,8 @@ export default function Main() {
   const [expoPushToken, setExpoPushToken] = useState("");
   const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
 
-  const updateTheme = () => {
-    setCurrentTheme((prev) => (prev === "default" ? "blue" : "default"));
+  const updateTheme = (color = "default") => {
+    setCurrentTheme(color);
   };
 
   // const storeTheme = async (value) => {
@@ -227,6 +227,15 @@ export default function Main() {
       <Stack.Navigator
         screenOptions={{
           headerBackground: (props) => <Header {...props} />,
+          headerRight: () => (
+            <>
+              <RNP.Appbar.Action
+                icon="cog"
+                color={theme.colors.inverseSurface}
+                onPress={toggleSettingsModal}
+              />
+            </>
+          ),
         }}
       >
         <Stack.Screen
@@ -234,20 +243,6 @@ export default function Main() {
           component={HomeScreen}
           options={{
             title: "Select a schedule",
-            headerRight: () => (
-              <>
-                <RNP.Appbar.Action
-                  icon="cog"
-                  color={theme.colors.inverseSurface}
-                  onPress={toggleSettingsModal}
-                />
-                <RNP.Appbar.Action
-                  icon="palette"
-                  color={theme.colors.inverseSurface}
-                  onPress={updateTheme}
-                />
-              </>
-            ),
           }}
         />
         <Stack.Screen
@@ -265,6 +260,7 @@ export default function Main() {
           notifyMap,
           deleteNotifyMap,
           clearNotifyMap,
+          updateTheme,
         }}
       />
     </View>
