@@ -53,13 +53,17 @@ export default function ScheduleListItem({ data, spotsWanted }) {
 
   return (
     <RNP.List.Item
-      titleStyle={availability === "Full" ? { opacity: 0.5 } : {}}
-      descriptionStyle={availability === "Full" ? { opacity: 0.5 } : {}}
+      titleStyle={availability === "Full" ? { opacity: 0.6 } : {}}
+      descriptionStyle={availability === "Full" ? { opacity: 0.6 } : {}}
       title={slot}
       description={availability}
       onPress={toggleNotifications}
       rippleColor="transparent"
-      style={{ paddingTop: 0, paddingBottom: 0 }}
+      style={{
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingRight: 20,
+      }}
       left={(props) => {
         return (
           <RNP.List.Icon

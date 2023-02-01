@@ -5,6 +5,7 @@ import * as RNP from "react-native-paper";
 import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
+import { themeColors } from "../common/constants";
 
 export default function SettingsTheme() {
   const theme = useAppTheme();
@@ -16,8 +17,6 @@ export default function SettingsTheme() {
       <Pressable
         onPress={() => setCurrentTheme(color)}
         style={{
-          marginLeft: 10,
-          marginRight: 10,
           borderRadius: 4,
           backgroundColor: theme.colors.primary,
           overflow: "hidden",
@@ -31,8 +30,8 @@ export default function SettingsTheme() {
         >
           <View
             style={{
-              width: 100,
-              height: 100,
+              width: 60,
+              height: 60,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -46,9 +45,17 @@ export default function SettingsTheme() {
 
   return (
     <RNP.List.Section title="Theme">
-      <View style={{ flexDirection: "row" }}>
-        <ThemeSwatch color="default" />
-        <ThemeSwatch color="blue" />
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingLeft: 15,
+          paddingRight: 15,
+        }}
+      >
+        {Object.values(themeColors).map((color) => (
+          <ThemeSwatch key={color} color={color} />
+        ))}
       </View>
     </RNP.List.Section>
   );

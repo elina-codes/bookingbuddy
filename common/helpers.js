@@ -1,13 +1,26 @@
 import axios from "axios";
-import { blueGradient, redGradient } from "../common/theme";
-import { bookingLinks, facilities } from "./constants";
+import {
+  tealGradient,
+  redGradient,
+  greenGradient,
+  purpleGradient,
+  goldGradient,
+} from "../common/theme";
+import { bookingLinks, facilities, themeColors } from "./constants";
 
 /* THEME */
 export const getThemeGradient = (currentTheme) => {
-  if (currentTheme === "default") {
-    return redGradient;
-  } else if (currentTheme === "blue") {
-    return blueGradient;
+  switch (currentTheme) {
+    case themeColors.teal:
+      return tealGradient;
+    case themeColors.green:
+      return greenGradient;
+    case themeColors.purple:
+      return purpleGradient;
+    case themeColors.gold:
+      return goldGradient;
+    default:
+      return redGradient;
   }
 };
 

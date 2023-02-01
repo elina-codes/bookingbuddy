@@ -42,7 +42,7 @@ export default function ScheduleTab({
             backgroundColor:
               currentTheme === "default"
                 ? theme.colors.primary
-                : theme.colors.onTertiaryContainer,
+                : theme.colors.errorContainer,
             marginBottom: 10,
           }}
         />

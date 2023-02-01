@@ -1,6 +1,28 @@
 import { MD3DarkTheme as DefaultTheme, useTheme } from "react-native-paper";
 
-export const blueGradient = ["#051937", "#004d7a", "#008793", "#00bf72"];
+export const tealGradient = ["#051937", "#004d7a", "#008793", "#00bf72"];
+export const goldGradient = [
+  "#5c1c00",
+  "#742f06",
+  "#873f08",
+  "#9a5209",
+  "#af6408",
+  "#bf7908",
+  "#d49008",
+  "#e2a808",
+];
+export const greenGradient = [
+  "#023300",
+  "#0C4106",
+  "#1C520A",
+  "#295F0C",
+  "#3B710E",
+  "#4B810E",
+  "#5F950E",
+  "#70A20B",
+  "#87B607",
+  "#9CC700",
+];
 export const redGradient = [
   "#57006b",
   "#8a0067",
@@ -10,7 +32,28 @@ export const redGradient = [
   "#ff692e",
   "#ff970f",
 ];
-export const greyGradient = ["#000", "#6a6a6a"];
+export const purpleGradient = [
+  "#004fe0",
+  "#2a4fe5",
+  "#3e4cea",
+  "#4f49ee",
+  "#5f45f2",
+  "#6f42f5",
+  "#7c39f9",
+  "#8932fb",
+  "#9926fd",
+  "#a71aff",
+];
+// [
+//   "#271958",
+//   "#2e216e",
+//   "#302985",
+//   "#303197",
+//   "#2d3aae",
+//   "#2344c7",
+//   "#004fe0",
+//   "#005aff",
+// ];
 
 // "#000066",
 // "#57006b",

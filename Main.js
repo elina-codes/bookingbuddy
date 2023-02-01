@@ -199,6 +199,8 @@ export default function Main() {
     <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       <Stack.Navigator
         screenOptions={{
+          headerBackTitleVisible: false,
+          headerTintColor: theme.colors.inverseSurface,
           headerBackground: (props) => <Header {...props} />,
           headerRight: () => (
             <>

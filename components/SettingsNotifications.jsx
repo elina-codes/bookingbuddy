@@ -27,13 +27,24 @@ export default function SettingsNotifications({
 
   return (
     <RNP.List.Section title="Notifications" style={{ flex: 1 }}>
+      {/* <RNP.Button
+        icon={"bell-off"}
+        disabled={notifyMap.size === 0}
+        textColor={theme.colors.text}
+        mode="outlined"
+        onPress={onDeleteConfirm}
+      >
+        Turn off all notifications
+      </RNP.Button> */}
       <View
         style={{
           paddingLeft: 15,
           paddingRight: 15,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
+          ...(showDeleteConfirm && {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }),
         }}
       >
         {showDeleteConfirm ? (
@@ -43,7 +54,7 @@ export default function SettingsNotifications({
             icon={"bell-off"}
             disabled={showDeleteConfirm || notifyMap.size === 0}
             textColor={theme.colors.text}
-            style={{ flex: 1 }}
+            style={{ width: "100%" }}
             mode="outlined"
             onPress={onDeletePress}
           >
@@ -89,7 +100,7 @@ export default function SettingsNotifications({
                 </View>
               }
               description={facility}
-              descriptionStyle={{ opacity: 0.6 }}
+              // descriptionStyle={{ opacity: 0.6 }}
               right={(props) => (
                 <RNP.IconButton
                   {...props}

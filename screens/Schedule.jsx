@@ -1,12 +1,15 @@
 import { useContext, useEffect, useMemo, useState } from "react";
+import * as RNP from "react-native-paper";
 import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
 import NotificationsSection from "../components/NotificationsSection";
 import { getSchedule } from "../common/helpers";
+
+import * as Linking from "expo-linking";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
-import { scheduleDays } from "../common/constants";
+import { bookingLinks, scheduleDays } from "../common/constants";
 import { NotifyContext } from "../common/Context";
 
 export default function Schedule({ route, navigation }) {
@@ -16,9 +19,19 @@ export default function Schedule({ route, navigation }) {
   const { deleteFacilityTabBadge, facilityTabBadges } =
     useContext(NotifyContext);
 
+  const onWebsitePress = () => {
+    Linking.openURL(bookingLinks[facility]);
+  };
   useEffect(() => {
     navigation.setOptions({
       title: facility,
+      headerRight: () => (
+        <RNP.Appbar.Action
+          icon="open-in-new"
+          color={theme.colors.inverseSurface}
+          onPress={onWebsitePress}
+        />
+      ),
     });
   }, [navigation]);
 
@@ -118,7 +131,6 @@ export default function Schedule({ route, navigation }) {
         {...{
           spotsWanted: dayFuncMap.get(dateToShow).spotsWanted,
           setSpotsWanted: dayFuncMap.get(dateToShow).setSpotsWanted,
-          facility,
         }}
       />
       <ScheduleList

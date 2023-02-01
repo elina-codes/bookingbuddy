@@ -1,5 +1,13 @@
 export const scheduleDays = ["today", "tomorrow", "overmorrow"];
 
+export const themeColors = {
+  default: "default",
+  teal: "teal",
+  green: "green",
+  purple: "purple",
+  gold: "gold",
+};
+
 export const facilities = {
   hiveVancouver: "Bouldering: Hive Vancouver",
   hiveHeights: "Climbing: Hive Heights",
@@ -10,11 +18,6 @@ export const facilities = {
   hiveFuncMobility: "Functional Mobility: Hive North Van",
   hivePilates: "Hive Pilates: Hive North Van",
   hiveFit: "Hive Fit: Hive North Van",
-};
-
-export const facilityColors = {
-  [facilities.hiveHeights]: "default",
-  [facilities.hiveVancouver]: "blue",
 };
 
 export const bookingLinks = {
