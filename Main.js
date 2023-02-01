@@ -41,32 +41,6 @@ export default function Main() {
     setCurrentTheme(color);
   };
 
-  // const storeTheme = async (value) => {
-  //   try {
-  //     await AsyncStorage.setItem("theme", value);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   storeTheme(currentTheme);
-  // }, [currentTheme]);
-
-  // useEffect(() => {
-  //   const getThemeGradient = async () => {
-  //     try {
-  //       const value = await AsyncStorage.getItem("theme");
-  //       if (value !== null) {
-  //         setCurrentTheme(value);
-  //       }
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   };
-  //   getThemeGradient();
-  // }, []);
-
   const registerForPushNotificationsAsync = async () => {
     let token;
 
@@ -186,7 +160,6 @@ export default function Main() {
 
   const checkForNewAvailability = useCallback(() => {
     if (notifyMap.size) {
-      console.log("PARSING AT APP LEVEL", [...notifyMap]);
       const facilityDateSet = new Set();
       [...notifyMap.keys()].forEach((id) => {
         const [facility, date] = id.split(",");

@@ -7,6 +7,32 @@ export const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState("default");
 
+  // const storeTheme = async (value) => {
+  //   try {
+  //     await AsyncStorage.setItem("theme", value);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   storeTheme(currentTheme);
+  // }, [currentTheme]);
+
+  // useEffect(() => {
+  //   const getThemeGradient = async () => {
+  //     try {
+  //       const value = await AsyncStorage.getItem("theme");
+  //       if (value !== null) {
+  //         setCurrentTheme(value);
+  //       }
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   };
+  //   getThemeGradient();
+  // }, []);
+
   return (
     <ThemeContext.Provider value={{ currentTheme, setCurrentTheme }}>
       {children}

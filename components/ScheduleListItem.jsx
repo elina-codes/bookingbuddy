@@ -72,7 +72,6 @@ export default function ScheduleListItem({ data, spotsWanted }) {
       right={(props) => (
         <RNP.IconButton
           {...props}
-          // onPress={toggleNotifications}
           icon={isNotifyOn ? "bell" : "bell-off-outline"}
           iconColor={
             isNotifyOn ? theme.colors.primary : theme.colors.surfaceVariant

@@ -1,5 +1,6 @@
-import { View, StyleSheet } from "react-native";
 import * as RNP from "react-native-paper";
+import * as Linking from "expo-linking";
+import { View, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useAppTheme } from "../common/theme";
 import { bookingLinks } from "../common/constants";

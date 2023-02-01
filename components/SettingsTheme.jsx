@@ -1,6 +1,6 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useContext } from "react";
 import { Pressable, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import * as RNP from "react-native-paper";
 import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";

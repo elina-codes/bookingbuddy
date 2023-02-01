@@ -1,12 +1,9 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-import * as RNP from "react-native-paper";
 import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
 import NotificationsSection from "../components/NotificationsSection";
 import { getSchedule } from "../common/helpers";
-
-import * as Linking from "expo-linking";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
 import { scheduleDays } from "../common/constants";

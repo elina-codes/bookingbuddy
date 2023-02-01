@@ -1,14 +1,14 @@
+import { useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+import { View } from "react-native";
 import {
   formattedDate,
   getThemeGradient,
   overmorrow,
   tomorrow,
 } from "../common/helpers";
-import { View } from "react-native";
-import ScheduleTab from "./ScheduleTab";
 import { ThemeContext } from "../common/Context";
-import { useContext } from "react";
+import ScheduleTab from "./ScheduleTab";
 
 export default function ScheduleTabs({
   showTodayBadge,
