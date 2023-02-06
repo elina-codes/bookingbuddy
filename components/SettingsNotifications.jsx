@@ -5,7 +5,7 @@ import { formattedDate } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
 
 export default function SettingsNotifications({
-  notifyMap,
+  notifyMap = new Map([]),
   deleteNotifyMap,
   clearNotifyMap,
 }) {
@@ -81,39 +81,41 @@ export default function SettingsNotifications({
         )}
       </View>
       <ScrollView>
-        {[...notifyMap].map(([id, { spotsWanted }]) => {
-          const [facility, date, slot] = id.split(",");
-          return (
-            <RNP.List.Item
-              style={{ paddingRight: 10 }}
-              key={id}
-              title={
-                <View>
-                  <RNP.Text variant="bodyMedium" style={{ opacity: 0.6 }}>
-                    {formattedDate(new Date(date), true)}
-                  </RNP.Text>
-                  <RNP.Text variant="bodyLarge">
-                    {slot}
-                    {"   "}•{"   "}
-                    {spotsWanted} space{spotsWanted > 1 ? "s" : ""}
-                  </RNP.Text>
-                </View>
-              }
-              description={facility}
-              // descriptionStyle={{ opacity: 0.6 }}
-              right={(props) => (
-                <RNP.IconButton
-                  {...props}
-                  style={{ marginRight: 0 }}
-                  icon="delete"
-                  onPress={() => {
-                    deleteNotifyMap(id);
-                  }}
-                />
-              )}
-            />
-          );
-        })}
+        {[...notifyMap]
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([id, { spotsWanted }]) => {
+            const [facility, date, slot] = id.split(",");
+            return (
+              <RNP.List.Item
+                style={{ paddingRight: 10 }}
+                key={id}
+                title={
+                  <View>
+                    <RNP.Text variant="bodyMedium" style={{ opacity: 0.6 }}>
+                      {spotsWanted} space{spotsWanted > 1 ? "s" : ""}
+                    </RNP.Text>
+                    <RNP.Text variant="bodyLarge">
+                      {formattedDate(date, true)}
+                      {"  "}•{"  "}
+                      {slot}
+                    </RNP.Text>
+                  </View>
+                }
+                description={facility}
+                // descriptionStyle={{ opacity: 0.6 }}
+                right={(props) => (
+                  <RNP.IconButton
+                    {...props}
+                    style={{ marginRight: 0 }}
+                    icon="delete"
+                    onPress={() => {
+                      deleteNotifyMap(id);
+                    }}
+                  />
+                )}
+              />
+            );
+          })}
       </ScrollView>
     </RNP.List.Section>
   );

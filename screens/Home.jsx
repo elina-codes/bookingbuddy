@@ -25,8 +25,8 @@ export default function Home({ navigation }) {
         {Object.values(facilities).map((facility, i) => {
           let title = facility;
           let description = "";
-          if (facility.includes(":")) {
-            const splitName = facility.split(": ");
+          if (facility.includes("@")) {
+            const splitName = facility.split(" @ ");
             title = splitName[0];
             description = splitName[1];
           }

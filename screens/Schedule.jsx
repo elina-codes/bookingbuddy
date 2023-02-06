@@ -109,7 +109,6 @@ export default function Schedule({ route, navigation }) {
 
   useEffect(() => {
     getAllSchedules();
-    console.log({ tab, facility });
   }, []);
 
   useEffect(() => {

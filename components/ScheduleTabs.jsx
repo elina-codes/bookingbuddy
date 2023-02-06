@@ -5,7 +5,9 @@ import {
   formattedDate,
   getThemeGradient,
   overmorrow,
+  overmorrowFormattedLong,
   tomorrow,
+  tomorrowFormattedLong,
 } from "../common/helpers";
 import { ThemeContext } from "../common/Context";
 import ScheduleTab from "./ScheduleTab";
@@ -25,12 +27,12 @@ export default function ScheduleTabs({
       showBadge: showTodayBadge,
     },
     {
-      label: formattedDate(tomorrow, true),
+      label: tomorrowFormattedLong,
       value: "tomorrow",
       showBadge: showTomorrowBadge,
     },
     {
-      label: formattedDate(overmorrow, true),
+      label: overmorrowFormattedLong,
       value: "overmorrow",
       showBadge: showOvermorrowBadge,
     },

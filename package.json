@@ -1,11 +1,10 @@
 {
   "name": "bookingbuddy",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -17,7 +16,8 @@
     "@react-navigation/stack": "^6.3.11",
     "@types/react-native": "~0.70.6",
     "axios": "^1.2.3",
-    "expo": "^47.0.13",
+    "dayjs": "^1.11.7",
+    "expo": "~47.0.12",
     "expo-asset": "~8.7.0",
     "expo-device": "~5.0.0",
     "expo-font": "~11.0.1",

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Booking Buddy",
-    "slug": "bookingbuddy",
+    "slug": "piggybank",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,8 +19,9 @@
       "supportsTablet": true
     },
     "android": {
+      "jsEngine": "hermes",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/bb-icon.png",
+        "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#1B1B18"
       },
       "package": "com.goldin.bookingchecker"
@@ -34,13 +35,13 @@
       }
     },
     "notification": {
-      "icon": "./assets/bb-icon.png"
+      "icon": "./assets/favicon.png"
     },
     "plugins": [
       [
         "expo-notifications",
         {
-          "icon": "./assets/bb-icon.png"
+          "icon": "./assets/favicon.png"
         }
       ]
     ],

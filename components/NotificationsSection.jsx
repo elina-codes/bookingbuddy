@@ -11,14 +11,15 @@ export default function NotificationsSection({ setSpotsWanted, spotsWanted }) {
       <View style={styles.notificationSection}>
         <View style={styles.flex}>
           <RNP.Text
+            variant="bodyLarge"
             style={{
-              color: theme.colors.inverseSurface,
+              color: theme.colors.inverseOnSurface,
             }}
           >
             Minimum spaces wanted:
           </RNP.Text>
 
-          <View style={{ margin: 5, marginLeft: 10 }}>
+          <View style={{ margin: 10, marginLeft: 10 }}>
             <NumericInput
               {...{
                 minValue: 1,
@@ -34,6 +35,7 @@ export default function NotificationsSection({ setSpotsWanted, spotsWanted }) {
                 rounded: true,
                 reachMaxIncIconStyle: { color: theme.colors.surfaceDisabled },
                 reachMinDecIconStyle: { color: theme.colors.surfaceDisabled },
+                totalHeight: 45,
               }}
             />
             {/* <Picker

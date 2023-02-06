@@ -12,9 +12,8 @@ import {
   isTodayTomorrowOvermorrow,
   isTomorrow,
   getSchedule,
-  formattedDate,
 } from "./common/helpers";
-import { Platform, ScrollView, View } from "react-native";
+import { Platform, View } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "./common/hooks/useInterval";

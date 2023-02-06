@@ -9,15 +9,15 @@ export const themeColors = {
 };
 
 export const facilities = {
-  hiveVancouver: "Bouldering: Hive Vancouver",
-  hiveHeights: "Climbing: Hive Heights",
-  hiveHathaYoga: "Hatha Yoga: Hive North Van",
-  hiveYinYoga: "Yin Yoga: Hive North Van",
-  hiveYinMassage: "Yin + Massage: Hive North Van",
-  hivePowerYoga: "Power Yoga: Hive North Van",
-  hiveFuncMobility: "Functional Mobility: Hive North Van",
-  hivePilates: "Hive Pilates: Hive North Van",
-  hiveFit: "Hive Fit: Hive North Van",
+  hiveVancouver: "Bouldering @ Hive Vancouver",
+  hiveHeights: "Climbing @ Hive Heights",
+  hiveHathaYoga: "Hatha Yoga @ Hive North Van",
+  hiveYinYoga: "Yin Yoga @ Hive North Van",
+  hiveYinMassage: "Yin + Massage @ Hive North Van",
+  hivePowerYoga: "Power Yoga @ Hive North Van",
+  hiveFuncMobility: "Functional Mobility @ Hive North Van",
+  hivePilates: "Hive Pilates @ Hive North Van",
+  hiveFit: "Hive Fit @ Hive North Van",
 };
 
 export const bookingLinks = {

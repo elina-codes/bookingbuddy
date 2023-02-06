@@ -1,3 +1,7 @@
+import dayjs from "dayjs";
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+dayjs.extend(customParseFormat);
+
 import axios from "axios";
 import {
   tealGradient,
@@ -27,19 +31,8 @@ export const getThemeGradient = (currentTheme) => {
 /* DATES */
 
 export const formattedDate = (date, long) => {
-  if (long) {
-    const options = { month: "short", day: "numeric", weekday: "short" };
-    return date.toLocaleDateString("en-US", options);
-  } else {
-    const localized = date
-      .toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-      .split("/");
-    return `${localized[2]}-${localized[0]}-${localized[1]}`;
-  }
+  const format = long ? "ddd, MMM D" : "YYYY-MM-DD";
+  return dayjs(date).format(format);
 };
 
 export const today = new Date();
@@ -49,6 +42,9 @@ export const overmorrow = new Date(new Date().getTime() + 48 * 60 * 60 * 1000);
 export const todayFormatted = formattedDate(today);
 export const tomorrowFormatted = formattedDate(tomorrow);
 export const overmorrowFormatted = formattedDate(overmorrow);
+export const todayFormattedLong = formattedDate(today, true);
+export const tomorrowFormattedLong = formattedDate(tomorrow, true);
+export const overmorrowFormattedLong = formattedDate(overmorrow, true);
 
 export const isToday = (date) => new Date(date).getDate() == today.getDate();
 export const isTomorrow = (date) =>
@@ -138,9 +134,8 @@ export const formatResponse = (facility, response) => {
   const resp_array = parseAvailability(resp);
   return resp_array.map((item) => {
     const splitItem = item.date.split(",");
-    const itemDate = new Date(
-      `${splitItem[1].trim()},${new Date().getFullYear()}`
-    );
+    const dateString = `${splitItem[1].trim()}, ${new Date().getFullYear()}`;
+    const itemDate = dayjs(dateString, "MMMM D, YYYY").toDate();
     const itemSlot = splitItem[2].trim();
     item.slot = itemSlot;
     item.date = itemDate;
