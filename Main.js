@@ -9,74 +9,39 @@ import Header from "./components/Header";
 import {
   isOvermorrow,
   isToday,
-  isTodayTomorrowOvermorrow,
+  dateToDay,
   isTomorrow,
   getSchedule,
+  getFacilityTitleAndLocation,
 } from "./common/helpers";
 import { Platform, View } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "./common/hooks/useInterval";
 import { useNavigation } from "@react-navigation/native";
-import Settings from "./screens/Settings";
+import { facilities, scheduleDays } from "./common/constants";
+
+// Run local notifications in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    };
+  },
+});
 
 const Stack = createNativeStackNavigator();
 
 export default function Main() {
   const theme = useAppTheme();
   const navigation = useNavigation();
-  const {
-    notifyMap,
-    clearNotifyMap,
-    deleteNotifyMap,
-    updateNotifyMap,
-    addFacilityTabBadge,
-  } = useContext(NotifyContext);
-  const { setCurrentTheme } = useContext(ThemeContext);
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [isSettingsModalVisible, setIsSettingsModalVisible] = useState(false);
-
-  const updateTheme = (color = "default") => {
-    setCurrentTheme(color);
-  };
-
-  const registerForPushNotificationsAsync = async () => {
-    let token;
-
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#FF231F7C",
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== "granted") {
-        alert("Failed to get push token for push notification!");
-        return;
-      }
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-    } else {
-      alert("Must use physical device for Push Notifications");
-    }
-
-    return token;
-  };
+  const { notifyMap, updateNotifyMap, addFacilityTabBadge, addNewSpaceAlert } =
+    useContext(NotifyContext);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) =>
-      setExpoPushToken(token)
-    );
-
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         const { tab, facility } = notification?.request?.content?.data || {};
@@ -98,22 +63,16 @@ export default function Main() {
     };
   }, []);
 
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
-
-  const sendPushNotification = async (spaces = []) => {
+  const sendLocalNotification = async (spaces = []) => {
     if (spaces.length) {
-      console.log("Sending push notification...", spaces);
+      console.log("Sending local notification...", spaces);
       const body = spaces
         .map((item = {}) => {
           let { id, date, availability, slot } = item || {};
           const current = notifyMap.get(id);
-          updateNotifyMap(id, { ...current, availability });
+          addNewSpaceAlert(id);
+          console.log({ id, current });
+          updateNotifyMap({ id, ...current, availability });
           if (isToday(date)) {
             date = "Today";
           } else if (isTomorrow(date)) {
@@ -126,30 +85,24 @@ export default function Main() {
           return `${date}: ${availability} from ${slot}`;
         })
         .join("\n");
-      const [facility] = spaces?.[0].id?.split(",");
+      const { facility } = spaces?.[0] || {};
 
-      const message = {
-        to: expoPushToken,
-        sound: "default",
-        title: `New availability for ${facility}! 🎉`,
+      const content = {
+        title: `New availability for ${getFacilityTitleAndLocation(
+          facility
+        )}! 🎉`,
         body,
         data: {
           facility,
           tab: spaces.length
-            ? isTodayTomorrowOvermorrow(spaces?.[0]?.date)
-            : "today",
+            ? dateToDay(spaces?.[0]?.date)
+            : scheduleDays.today,
         },
       };
-
       try {
-        await fetch("https://exp.host/--/api/v2/push/send", {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Accept-encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(message),
+        await Notifications.scheduleNotificationAsync({
+          content,
+          trigger: null,
         });
       } catch (error) {
         console.error(error);
@@ -160,24 +113,17 @@ export default function Main() {
   const checkForNewAvailability = useCallback(() => {
     if (notifyMap.size) {
       const facilityDateSet = new Set();
-      [...notifyMap.keys()].forEach((id) => {
-        const [facility, date] = id.split(",");
+      [...notifyMap.values()].forEach((item) => {
+        const { facility, date } = item;
         facilityDateSet.add(`${facility},${date}`);
       });
       [...facilityDateSet].forEach(async (pair) => {
         const [facility, date] = pair.split(",");
-        let parseDate = "";
-        if (isToday(date)) {
-          parseDate = "today";
-        } else if (isTomorrow(date)) {
-          parseDate = "tomorrow";
-        } else if (isOvermorrow(date)) {
-          parseDate = "overmorrow";
-        }
+        const parseDate = dateToDay(date);
         if (parseDate) {
           const newSpaces = await getSchedule(facility, parseDate, notifyMap);
           if (newSpaces.length) {
-            sendPushNotification(newSpaces);
+            sendLocalNotification(newSpaces);
           }
         }
       });
@@ -190,23 +136,24 @@ export default function Main() {
 
   useInterval(checkForNewAvailability, 20000);
 
-  const toggleSettingsModal = () => {
-    setIsSettingsModalVisible(!isSettingsModalVisible);
-  };
-
   return (
     <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       <Stack.Navigator
         screenOptions={{
+          animation: "slide_from_right",
           headerBackTitleVisible: false,
           headerTintColor: theme.colors.inverseSurface,
-          headerBackground: (props) => <Header {...props} />,
+          headerBackground: (props) => (
+            <Header
+              {...{ showSettingsModal, setShowSettingsModal, ...props }}
+            />
+          ),
           headerRight: () => (
             <>
               <RNP.Appbar.Action
                 icon="cog"
                 color={theme.colors.inverseSurface}
-                onPress={toggleSettingsModal}
+                onPress={() => setShowSettingsModal(true)}
               />
             </>
           ),
@@ -219,24 +166,8 @@ export default function Main() {
             title: "Select a schedule",
           }}
         />
-        <Stack.Screen
-          name="Schedule"
-          component={ScheduleScreen}
-          options={({ route }) => ({
-            title: route.params.facility,
-          })}
-        />
+        <Stack.Screen name="Schedule" component={ScheduleScreen} />
       </Stack.Navigator>
-      <Settings
-        {...{
-          isSettingsModalVisible,
-          toggleSettingsModal,
-          notifyMap,
-          deleteNotifyMap,
-          clearNotifyMap,
-          updateTheme,
-        }}
-      />
     </View>
   );
 }

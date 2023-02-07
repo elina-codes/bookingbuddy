@@ -3,13 +3,13 @@ import * as RNP from "react-native-paper";
 import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
-import NotificationsSection from "../components/NotificationsSection";
-import { getSchedule } from "../common/helpers";
+import ScheduleHeadings from "../components/ScheduleHeadings";
+import { getFacilityTitleAndLocation, getSchedule } from "../common/helpers";
 
 import * as Linking from "expo-linking";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
-import { bookingLinks, scheduleDays } from "../common/constants";
+import { facilities, scheduleDays } from "../common/constants";
 import { NotifyContext } from "../common/Context";
 
 export default function Schedule({ route, navigation }) {
@@ -20,11 +20,12 @@ export default function Schedule({ route, navigation }) {
     useContext(NotifyContext);
 
   const onWebsitePress = () => {
-    Linking.openURL(bookingLinks[facility]);
+    Linking.openURL(facilities[facility].bookingLink);
   };
+
   useEffect(() => {
     navigation.setOptions({
-      title: facility,
+      title: getFacilityTitleAndLocation(facility),
       headerRight: () => (
         <RNP.Appbar.Action
           icon="open-in-new"
@@ -42,9 +43,6 @@ export default function Schedule({ route, navigation }) {
   const [currentScheduleOvermorrow, setCurrentScheduleOvermorrow] = useState(
     []
   );
-  const [spotsWantedToday, setSpotsWantedToday] = useState(1);
-  const [spotsWantedTomorrow, setSpotsWantedTomorrow] = useState(1);
-  const [spotsWantedOvermorrow, setSpotsWantedOvermorrow] = useState(1);
 
   const checkTabBadges = (day) => {
     const facilityTabs = facilityTabBadges.get(facility);
@@ -66,28 +64,22 @@ export default function Schedule({ route, navigation }) {
 
   const dayFuncMap = new Map([
     [
-      "today",
+      scheduleDays.today,
       {
-        spotsWanted: spotsWantedToday,
-        setSpotsWanted: setSpotsWantedToday,
         currentSchedule: currentScheduleTodayMemo,
         setCurrentSchedule: setCurrentScheduleToday,
       },
     ],
     [
-      "tomorrow",
+      scheduleDays.tomorrow,
       {
-        spotsWanted: spotsWantedTomorrow,
-        setSpotsWanted: setSpotsWantedTomorrow,
         currentSchedule: currentScheduleTomorrowMemo,
         setCurrentSchedule: setCurrentScheduleTomorrow,
       },
     ],
     [
-      "overmorrow",
+      scheduleDays.overmorrow,
       {
-        spotsWanted: spotsWantedOvermorrow,
-        setSpotsWanted: setSpotsWantedOvermorrow,
         currentSchedule: currentScheduleOvermorrowMemo,
         setCurrentSchedule: setCurrentScheduleOvermorrow,
       },
@@ -95,7 +87,7 @@ export default function Schedule({ route, navigation }) {
   ]);
 
   const getAllSchedules = async () => {
-    for (let day of scheduleDays) {
+    for (let day of Object.values(scheduleDays)) {
       try {
         const daySchedule = await getSchedule(facility, day);
         dayFuncMap.get(day).setCurrentSchedule(daySchedule);
@@ -126,16 +118,10 @@ export default function Schedule({ route, navigation }) {
         backgroundColor: theme.colors.background,
       }}
     >
-      <NotificationsSection
-        {...{
-          spotsWanted: dayFuncMap.get(dateToShow).spotsWanted,
-          setSpotsWanted: dayFuncMap.get(dateToShow).setSpotsWanted,
-        }}
-      />
+      <ScheduleHeadings />
       <ScheduleList
         {...{
           currentSchedule: dayFuncMap.get(dateToShow).currentSchedule,
-          spotsWanted: dayFuncMap.get(dateToShow).spotsWanted,
         }}
       />
       <View>
@@ -143,9 +129,9 @@ export default function Schedule({ route, navigation }) {
           {...{
             onTabChange,
             dateToShow,
-            showTodayBadge: checkTabBadges("today"),
-            showTomorrowBadge: checkTabBadges("tomorrow"),
-            showOvermorrowBadge: checkTabBadges("overmorrow"),
+            showTodayBadge: checkTabBadges(scheduleDays.today),
+            showTomorrowBadge: checkTabBadges(scheduleDays.tomorrow),
+            showOvermorrowBadge: checkTabBadges(scheduleDays.overmorrow),
           }}
         />
       </View>

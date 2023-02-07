@@ -1,24 +1,20 @@
+import { useContext } from "react";
 import { View } from "react-native";
 import * as RNP from "react-native-paper";
+import { NotifyContext, ThemeContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
 import SettingsNotifications from "../components/SettingsNotifications";
 import SettingsTheme from "../components/SettingsTheme";
+import { useNavigation } from "@react-navigation/native";
 
-export default function Settings({
-  isSettingsModalVisible,
-  toggleSettingsModal,
-  notifyMap,
-  deleteNotifyMap,
-  clearNotifyMap,
-}) {
+export default function Settings({ showSettingsModal, setShowSettingsModal }) {
   const theme = useAppTheme();
+  const closeModal = () => setShowSettingsModal(false);
+  const navigation = useNavigation();
 
   return (
     <RNP.Portal>
-      <RNP.Modal
-        visible={isSettingsModalVisible}
-        onDismiss={toggleSettingsModal}
-      >
+      <RNP.Modal visible={showSettingsModal} onDismiss={closeModal}>
         <View
           style={{
             backgroundColor: theme.colors.surface,
@@ -34,12 +30,10 @@ export default function Settings({
             }}
           >
             <RNP.Title>Settings</RNP.Title>
-            <RNP.IconButton icon="close" onPress={toggleSettingsModal} />
+            <RNP.IconButton icon="close" onPress={closeModal} />
           </View>
           <SettingsTheme />
-          <SettingsNotifications
-            {...{ notifyMap, deleteNotifyMap, clearNotifyMap }}
-          />
+          <SettingsNotifications {...{ navigation, closeModal }} />
         </View>
       </RNP.Modal>
     </RNP.Portal>

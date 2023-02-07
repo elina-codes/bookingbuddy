@@ -2,15 +2,13 @@ import { useContext } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { View } from "react-native";
 import {
-  formattedDate,
   getThemeGradient,
-  overmorrow,
-  overmorrowFormattedLong,
-  tomorrow,
-  tomorrowFormattedLong,
+  overmorrowFormatted,
+  tomorrowFormatted,
 } from "../common/helpers";
 import { ThemeContext } from "../common/Context";
 import ScheduleTab from "./ScheduleTab";
+import { scheduleDays } from "../common/constants";
 
 export default function ScheduleTabs({
   showTodayBadge,
@@ -23,17 +21,17 @@ export default function ScheduleTabs({
   const tabs = [
     {
       label: "Today",
-      value: "today",
+      value: scheduleDays.today,
       showBadge: showTodayBadge,
     },
     {
-      label: tomorrowFormattedLong,
-      value: "tomorrow",
+      label: tomorrowFormatted,
+      value: scheduleDays.tomorrow,
       showBadge: showTomorrowBadge,
     },
     {
-      label: overmorrowFormattedLong,
-      value: "overmorrow",
+      label: overmorrowFormatted,
+      value: scheduleDays.overmorrow,
       showBadge: showOvermorrowBadge,
     },
   ];

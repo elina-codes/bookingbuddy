@@ -1,30 +1,88 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import * as RNP from "react-native-paper";
 import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
+import NumericInput from "react-native-numeric-input";
+import { Animated, View } from "react-native";
 
-export default function ScheduleListItem({ data, spotsWanted }) {
-  const { availability, slot, id } = data;
+export default function ScheduleListItem({ data }) {
+  const { availability, facility, slot, id, date } = data;
   const theme = useAppTheme();
-  const { notifyMap, updateNotifyMap, deleteNotifyMap } =
-    useContext(NotifyContext);
+  const {
+    notifyMap,
+    newSpaceAlerts,
+    deleteNewSpaceAlert,
+    updateNotifyMap,
+    deleteNotifyMap,
+  } = useContext(NotifyContext);
   const [isNotifyOn, setIsNotifyOn] = useState(notifyMap.has(id));
+  const [notifySpots, setNotifySpots] = useState(
+    notifyMap.get(id)?.spotsWanted || 1
+  );
+
+  const anim = useRef(new Animated.Value(0));
+
+  const shake = useCallback(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim.current, {
+          toValue: -2,
+          duration: 30,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim.current, {
+          toValue: 2,
+          duration: 30,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim.current, {
+          toValue: 0,
+          duration: 30,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 3 }
+    ).start();
+  }, []);
 
   const toggleNotifications = () => {
     if (notifyMap.has(id)) {
       deleteNotifyMap(id);
       setIsNotifyOn(false);
     } else {
-      updateNotifyMap(id, slot, availability, parseInt(spotsWanted));
+      updateNotifyMap({
+        id,
+        facility,
+        date,
+        slot,
+        availability,
+        spotsWanted: parseInt(notifySpots),
+      });
       setIsNotifyOn(true);
     }
   };
 
   useEffect(() => {
     if (notifyMap.has(id)) {
-      updateNotifyMap(id, slot, availability, parseInt(spotsWanted));
+      updateNotifyMap({
+        id,
+        facility,
+        date,
+        slot,
+        availability,
+        spotsWanted: parseInt(notifySpots),
+      });
     }
-  }, [spotsWanted]);
+  }, [notifySpots]);
+
+  useEffect(() => {
+    if (newSpaceAlerts.has(id)) {
+      shake();
+      setTimeout(() => {
+        deleteNewSpaceAlert(id);
+      }, 8000);
+    }
+  }, [newSpaceAlerts]);
 
   useEffect(() => {
     setIsNotifyOn(notifyMap.get(id));
@@ -51,13 +109,32 @@ export default function ScheduleListItem({ data, spotsWanted }) {
     }
   };
 
+  const getIcon = () => {
+    if (newSpaceAlerts.has(id)) {
+      return "bell-ring";
+    } else if (isNotifyOn) {
+      return "bell";
+    } else {
+      return "bell-off-outline";
+    }
+  };
+
+  const getIconColor = () => {
+    if (newSpaceAlerts.has(id)) {
+      return theme.colors.success;
+    } else if (isNotifyOn) {
+      return theme.colors.primary;
+    } else {
+      return theme.colors.surfaceVariant;
+    }
+  };
+
   return (
     <RNP.List.Item
       titleStyle={availability === "Full" ? { opacity: 0.6 } : {}}
       descriptionStyle={availability === "Full" ? { opacity: 0.6 } : {}}
       title={slot}
       description={availability}
-      onPress={toggleNotifications}
       rippleColor="transparent"
       style={{
         paddingTop: 0,
@@ -74,13 +151,39 @@ export default function ScheduleListItem({ data, spotsWanted }) {
         );
       }}
       right={(props) => (
-        <RNP.IconButton
-          {...props}
-          icon={isNotifyOn ? "bell" : "bell-off-outline"}
-          iconColor={
-            isNotifyOn ? theme.colors.primary : theme.colors.surfaceVariant
-          }
-        />
+        <>
+          {isNotifyOn && (
+            <View style={{ alignSelf: "center", marginRight: 10 }}>
+              <NumericInput
+                {...{
+                  minValue: 1,
+                  maxValue: 4,
+                  initValue: notifySpots,
+                  textColor: theme.colors.inverseSurface,
+                  onChange: (value) => setNotifySpots(value),
+                  rightButtonBackgroundColor: theme.colors.surfaceDisabled,
+                  leftButtonBackgroundColor: theme.colors.surfaceDisabled,
+                  iconStyle: { color: theme.colors.inverseSurface },
+                  borderColor: theme.colors.surface,
+                  separatorWidth: 0,
+                  rounded: true,
+                  reachMaxIncIconStyle: { color: theme.colors.surfaceDisabled },
+                  reachMinDecIconStyle: { color: theme.colors.surfaceDisabled },
+                  totalHeight: 45,
+                  totalWidth: 120,
+                }}
+              />
+            </View>
+          )}
+          <Animated.View style={{ transform: [{ translateX: anim.current }] }}>
+            <RNP.IconButton
+              {...props}
+              onPress={toggleNotifications}
+              icon={getIcon()}
+              iconColor={getIconColor()}
+            />
+          </Animated.View>
+        </>
       )}
     />
   );

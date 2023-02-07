@@ -20,6 +20,7 @@
     },
     "android": {
       "jsEngine": "hermes",
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#1B1B18"

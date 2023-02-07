@@ -44,7 +44,7 @@ export default function SettingsTheme() {
   };
 
   return (
-    <RNP.List.Section title="Theme">
+    <RNP.List.Section title="Theme" titleStyle={{ fontSize: 16 }}>
       <View
         style={{
           flexDirection: "row",
