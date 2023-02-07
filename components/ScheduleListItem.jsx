@@ -1,13 +1,12 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import * as RNP from "react-native-paper";
-import { NotifyContext } from "../common/Context";
+import { NotifyContext, ThemeContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
 import NumericInput from "react-native-numeric-input";
 import { Animated, View } from "react-native";
 
 export default function ScheduleListItem({ data }) {
   const { availability, facility, slot, id, date } = data;
-  const theme = useAppTheme();
   const {
     notifyMap,
     newSpaceAlerts,
@@ -15,6 +14,9 @@ export default function ScheduleListItem({ data }) {
     updateNotifyMap,
     deleteNotifyMap,
   } = useContext(NotifyContext);
+  const { currentTheme } = useContext(ThemeContext);
+  const theme = useAppTheme(currentTheme);
+
   const [isNotifyOn, setIsNotifyOn] = useState(notifyMap.has(id));
   const [notifySpots, setNotifySpots] = useState(
     notifyMap.get(id)?.spotsWanted || 1
@@ -27,21 +29,21 @@ export default function ScheduleListItem({ data }) {
       Animated.sequence([
         Animated.timing(anim.current, {
           toValue: -2,
-          duration: 30,
+          duration: 20,
           useNativeDriver: true,
         }),
         Animated.timing(anim.current, {
           toValue: 2,
-          duration: 30,
+          duration: 20,
           useNativeDriver: true,
         }),
         Animated.timing(anim.current, {
           toValue: 0,
-          duration: 30,
+          duration: 20,
           useNativeDriver: true,
         }),
       ]),
-      { iterations: 3 }
+      { iterations: 10 }
     ).start();
   }, []);
 
@@ -80,7 +82,7 @@ export default function ScheduleListItem({ data }) {
       shake();
       setTimeout(() => {
         deleteNewSpaceAlert(id);
-      }, 8000);
+      }, 10000);
     }
   }, [newSpaceAlerts]);
 
@@ -119,15 +121,10 @@ export default function ScheduleListItem({ data }) {
     }
   };
 
-  const getIconColor = () => {
-    if (newSpaceAlerts.has(id)) {
-      return theme.colors.success;
-    } else if (isNotifyOn) {
-      return theme.colors.primary;
-    } else {
-      return theme.colors.surfaceVariant;
-    }
-  };
+  const getIconColor = () =>
+    newSpaceAlerts.has(id) || isNotifyOn
+      ? theme.colors.primary
+      : theme.colors.surfaceVariant;
 
   return (
     <RNP.List.Item
@@ -153,7 +150,7 @@ export default function ScheduleListItem({ data }) {
       right={(props) => (
         <>
           {isNotifyOn && (
-            <View style={{ alignSelf: "center", marginRight: 10 }}>
+            <View style={{ alignSelf: "center" }}>
               <NumericInput
                 {...{
                   minValue: 1,
@@ -161,8 +158,8 @@ export default function ScheduleListItem({ data }) {
                   initValue: notifySpots,
                   textColor: theme.colors.inverseSurface,
                   onChange: (value) => setNotifySpots(value),
-                  rightButtonBackgroundColor: theme.colors.surfaceDisabled,
-                  leftButtonBackgroundColor: theme.colors.surfaceDisabled,
+                  rightButtonBackgroundColor: theme.colors.darkGrey,
+                  leftButtonBackgroundColor: theme.colors.darkGrey,
                   iconStyle: { color: theme.colors.inverseSurface },
                   borderColor: theme.colors.surface,
                   separatorWidth: 0,

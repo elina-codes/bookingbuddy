@@ -8,8 +8,8 @@ import { useAppTheme } from "../common/theme";
 import { themeColors } from "../common/constants";
 
 export default function SettingsTheme() {
-  const theme = useAppTheme();
   const { currentTheme, setCurrentTheme } = useContext(ThemeContext);
+  const theme = useAppTheme(currentTheme);
 
   const ThemeSwatch = ({ color }) => {
     const isCurrentTheme = color === currentTheme;

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ThemeContext, NotifyContext } from "./common/Context";
+import { NotifyContext, ThemeContext } from "./common/Context";
 import * as RNP from "react-native-paper";
 import { useAppTheme } from "./common/theme";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -13,13 +13,14 @@ import {
   isTomorrow,
   getSchedule,
   getFacilityTitleAndLocation,
+  getTheme,
 } from "./common/helpers";
-import { Platform, View } from "react-native";
-import * as Device from "expo-device";
+import { View } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "./common/hooks/useInterval";
 import { useNavigation } from "@react-navigation/native";
 import { facilities, scheduleDays } from "./common/constants";
+import { Provider as PaperProvider } from "react-native-paper";
 
 // Run local notifications in the foreground
 Notifications.setNotificationHandler({
@@ -35,11 +36,14 @@ Notifications.setNotificationHandler({
 const Stack = createNativeStackNavigator();
 
 export default function Main() {
-  const theme = useAppTheme();
-  const navigation = useNavigation();
   const { notifyMap, updateNotifyMap, addFacilityTabBadge, addNewSpaceAlert } =
     useContext(NotifyContext);
+  const { currentTheme } = useContext(ThemeContext);
+  const theme = useAppTheme(currentTheme);
+  const navigation = useNavigation();
+
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
@@ -137,37 +141,56 @@ export default function Main() {
   useInterval(checkForNewAvailability, 20000);
 
   return (
-    <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
-      <Stack.Navigator
-        screenOptions={{
-          animation: "slide_from_right",
-          headerBackTitleVisible: false,
-          headerTintColor: theme.colors.inverseSurface,
-          headerBackground: (props) => (
-            <Header
-              {...{ showSettingsModal, setShowSettingsModal, ...props }}
-            />
-          ),
-          headerRight: () => (
-            <>
-              <RNP.Appbar.Action
-                icon="cog"
-                color={theme.colors.inverseSurface}
-                onPress={() => setShowSettingsModal(true)}
+    <PaperProvider theme={theme}>
+      <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
+        <Stack.Navigator
+          screenOptions={{
+            animation: "slide_from_right",
+            headerBackTitleVisible: false,
+            headerTintColor: theme.colors.inverseSurface,
+            headerBackground: (props) => (
+              <Header
+                {...{
+                  showSettingsModal,
+                  setShowSettingsModal,
+                  showNotificationsModal,
+                  setShowNotificationsModal,
+                  ...props,
+                }}
               />
-            </>
-          ),
-        }}
-      >
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: "Select a schedule",
+            ),
+            headerRight: () => (
+              <>
+                <RNP.Appbar.Action
+                  icon="bell-outline"
+                  color={theme.colors.inverseSurface}
+                  onPress={() => setShowNotificationsModal(true)}
+                />
+                <RNP.Appbar.Action
+                  icon="cog-outline"
+                  color={theme.colors.inverseSurface}
+                  onPress={() => setShowSettingsModal(true)}
+                />
+              </>
+            ),
           }}
-        />
-        <Stack.Screen name="Schedule" component={ScheduleScreen} />
-      </Stack.Navigator>
-    </View>
+        >
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: "Select a schedule",
+            }}
+          />
+          <Stack.Screen
+            name="Schedule"
+            component={ScheduleScreen}
+            options={({ route }) => ({
+              title: getFacilityTitleAndLocation(route.params.facility),
+            })}
+          />
+        </Stack.Navigator>
+      </View>
+    </PaperProvider>
   );
 }

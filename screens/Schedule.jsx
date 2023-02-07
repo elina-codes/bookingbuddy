@@ -6,35 +6,18 @@ import ScheduleList from "../components/ScheduleList";
 import ScheduleHeadings from "../components/ScheduleHeadings";
 import { getFacilityTitleAndLocation, getSchedule } from "../common/helpers";
 
-import * as Linking from "expo-linking";
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
-import { facilities, scheduleDays } from "../common/constants";
-import { NotifyContext } from "../common/Context";
+import { scheduleDays } from "../common/constants";
+import { NotifyContext, ThemeContext } from "../common/Context";
 
-export default function Schedule({ route, navigation }) {
-  const theme = useAppTheme();
-  const { facility, tab = "today", badges } = route.params || {};
-
+export default function Schedule({ route }) {
   const { deleteFacilityTabBadge, facilityTabBadges } =
     useContext(NotifyContext);
+  const { currentTheme } = useContext(ThemeContext);
+  const theme = useAppTheme(currentTheme);
 
-  const onWebsitePress = () => {
-    Linking.openURL(facilities[facility].bookingLink);
-  };
-
-  useEffect(() => {
-    navigation.setOptions({
-      title: getFacilityTitleAndLocation(facility),
-      headerRight: () => (
-        <RNP.Appbar.Action
-          icon="open-in-new"
-          color={theme.colors.inverseSurface}
-          onPress={onWebsitePress}
-        />
-      ),
-    });
-  }, [navigation]);
+  const { facility, tab = "today", badges } = route.params || {};
 
   const [dateToShow, setDateToShow] = useState(tab);
 
@@ -62,35 +45,30 @@ export default function Schedule({ route, navigation }) {
     [currentScheduleOvermorrow]
   );
 
-  const dayFuncMap = new Map([
-    [
-      scheduleDays.today,
-      {
-        currentSchedule: currentScheduleTodayMemo,
-        setCurrentSchedule: setCurrentScheduleToday,
-      },
-    ],
-    [
-      scheduleDays.tomorrow,
-      {
-        currentSchedule: currentScheduleTomorrowMemo,
-        setCurrentSchedule: setCurrentScheduleTomorrow,
-      },
-    ],
-    [
-      scheduleDays.overmorrow,
-      {
-        currentSchedule: currentScheduleOvermorrowMemo,
-        setCurrentSchedule: setCurrentScheduleOvermorrow,
-      },
-    ],
-  ]);
+  const dayFuncMap = {
+    [scheduleDays.today]: {
+      currentSchedule: currentScheduleTodayMemo,
+      setCurrentSchedule: setCurrentScheduleToday,
+    },
+    [scheduleDays.tomorrow]: {
+      currentSchedule: currentScheduleTomorrowMemo,
+      setCurrentSchedule: setCurrentScheduleTomorrow,
+    },
+    [scheduleDays.overmorrow]: {
+      currentSchedule: currentScheduleOvermorrowMemo,
+      setCurrentSchedule: setCurrentScheduleOvermorrow,
+    },
+  };
+
+  const onTabChange = (day) => {
+    setDateToShow(day);
+  };
 
   const getAllSchedules = async () => {
     for (let day of Object.values(scheduleDays)) {
       try {
         const daySchedule = await getSchedule(facility, day);
-        dayFuncMap.get(day).setCurrentSchedule(daySchedule);
+        dayFuncMap[day].setCurrentSchedule(daySchedule);
       } catch (e) {
         console.error(e);
       }
@@ -107,10 +85,6 @@ export default function Schedule({ route, navigation }) {
     deleteFacilityTabBadge(facility, dateToShow);
   }, [dateToShow]);
 
-  const onTabChange = (day) => {
-    setDateToShow(day);
-  };
-
   return (
     <View
       style={{
@@ -118,10 +92,10 @@ export default function Schedule({ route, navigation }) {
         backgroundColor: theme.colors.background,
       }}
     >
-      <ScheduleHeadings />
+      <ScheduleHeadings {...{ facility }} />
       <ScheduleList
         {...{
-          currentSchedule: dayFuncMap.get(dateToShow).currentSchedule,
+          currentSchedule: dayFuncMap[dateToShow].currentSchedule,
         }}
       />
       <View>

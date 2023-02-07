@@ -21,7 +21,7 @@ export default function ScheduleList({ currentSchedule, spotsWanted }) {
           })
         ) : (
           <View style={styles.noResults}>
-            <RNP.Text variant="bodyLarge">No availabilities to show</RNP.Text>
+            <RNP.Text variant="bodyLarge">No availabilities</RNP.Text>
           </View>
         )}
       </RNP.List.Section>

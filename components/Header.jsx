@@ -5,10 +5,17 @@ import { useAppTheme } from "../common/theme";
 import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";
 import Settings from "../screens/Settings";
+import Notifications from "../screens/Notifications";
 
-export default function Header({ children, ...settingsProps }) {
+export default function Header({
+  children,
+  showSettingsModal,
+  setShowSettingsModal,
+  showNotificationsModal,
+  setShowNotificationsModal,
+}) {
   const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme();
+  const theme = useAppTheme(currentTheme);
 
   return (
     <>
@@ -26,7 +33,10 @@ export default function Header({ children, ...settingsProps }) {
           {children}
         </RNP.Appbar.Header>
       </LinearGradient>
-      <Settings {...settingsProps} />
+      <Settings {...{ showSettingsModal, setShowSettingsModal }} />
+      <Notifications
+        {...{ showNotificationsModal, setShowNotificationsModal }}
+      />
     </>
   );
 }

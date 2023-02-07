@@ -1,9 +1,8 @@
-import { useContext, useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useContext } from "react";
 import * as RNP from "react-native-paper";
 import { formattedDate, dateToDay } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
-import { NotifyContext } from "../common/Context";
+import { NotifyContext, ThemeContext } from "../common/Context";
 
 export default function SettingsNotificationsListItem({
   id,
@@ -15,7 +14,8 @@ export default function SettingsNotificationsListItem({
   closeModal,
 }) {
   const { deleteNotifyMap } = useContext(NotifyContext);
-  const theme = useAppTheme();
+  const { currentTheme } = useContext(ThemeContext);
+  const theme = useAppTheme(currentTheme);
 
   return (
     <RNP.Card

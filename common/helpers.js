@@ -11,10 +11,31 @@ import {
   greenGradient,
   purpleGradient,
   goldGradient,
+  tealTheme,
+  theme,
+  goldTheme,
+  purpleTheme,
+  greenTheme,
 } from "../common/theme";
 import { facilities, scheduleDays, themeColors } from "./constants";
 
 /* THEME */
+
+export const getTheme = (currentTheme) => {
+  switch (currentTheme) {
+    case themeColors.teal:
+      return tealTheme;
+    case themeColors.green:
+      return greenTheme;
+    case themeColors.purple:
+      return purpleTheme;
+    case themeColors.gold:
+      return goldTheme;
+    default:
+      return theme;
+  }
+};
+
 export const getThemeGradient = (currentTheme) => {
   switch (currentTheme) {
     case themeColors.teal:
