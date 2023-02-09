@@ -9,10 +9,7 @@ import ScheduleScreen from "./screens/Schedule";
 import HomeScreen from "./screens/Home";
 import Header from "./components/Header";
 import {
-  isOvermorrow,
-  isToday,
   dateToDay,
-  isTomorrow,
   getSchedule,
   getFacilityTitleAndLocation,
   dateToFromNow,
@@ -42,7 +39,9 @@ export default function Main() {
     watchedMap,
     updateWatchedMap,
     addFacilityTabBadge,
+    newSpaceAlerts,
     addNewSpaceAlert,
+    deleteNewSpaceAlert,
   } = useContext(NotifyContext);
   const theme = useAppTheme();
   const navigation = useNavigation();
@@ -76,7 +75,7 @@ export default function Main() {
     };
   }, []);
 
-  // Update watchedMap with the latest availability to prevent duplicate notifications
+  // Alert the user and update the item's latest availability to prevent duplicate notifications
   const handleNewNotification = (item = {}) => {
     let { id, availability } = item;
     const current = watchedMap.get(id);
@@ -136,7 +135,12 @@ export default function Main() {
         const [facility, date] = pair.split(",");
         const parseDate = dateToDay(date);
         if (parseDate) {
-          const newSpaces = await getSchedule(facility, parseDate, watchedMap);
+          const newSpaces = await getSchedule(
+            facility,
+            parseDate,
+            watchedMap,
+            deleteNewSpaceAlert
+          );
           if (newSpaces.length) {
             // Filter out spaces that have already been notified
             const spacesNotYetNotified = newSpaces.filter(
@@ -179,16 +183,12 @@ export default function Main() {
                 <RNP.Appbar.Action
                   icon="bell-outline"
                   color={theme.colors.inverseSurface}
-                  onPress={() =>
-                    navigation.navigate("Notifications", { params: watchedMap })
-                  }
+                  onPress={() => navigation.navigate("Notifications")}
                 />
                 <RNP.Appbar.Action
                   icon="cog-outline"
                   color={theme.colors.inverseSurface}
-                  onPress={() =>
-                    navigation.navigate("Settings", { params: watchedMap })
-                  }
+                  onPress={() => navigation.navigate("Settings")}
                 />
               </>
             ),
@@ -210,6 +210,7 @@ export default function Main() {
               })}
             />
           </Stack.Group>
+
           <Stack.Group
             screenOptions={{
               presentation: "fullScreenModal",

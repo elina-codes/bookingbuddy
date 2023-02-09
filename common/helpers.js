@@ -73,11 +73,11 @@ export const dayToDate = (day) => {
   }
 };
 
-export const dateToFromNow = (date) =>
+export const dateToFromNow = (date, short) =>
   dayjs(date).calendar(null, {
     sameDay: "[Today]",
     nextDay: "[Tomorrow]",
-    nextWeek: "dddd",
+    nextWeek: short ? "ddd" : "dddd",
   });
 
 /* ENDPOINT FORMATTING */
@@ -182,7 +182,11 @@ export const normalizeAvailability = (item = {}) => {
   }
 };
 
-export function getChangedAvailability(watchedMap, newSchedule) {
+export function getChangedAvailability(
+  watchedMap,
+  newSchedule,
+  deleteNewSpaceAlert
+) {
   const availableSpots = [];
 
   [...watchedMap].forEach((entry) => {
@@ -202,7 +206,12 @@ export function getChangedAvailability(watchedMap, newSchedule) {
   return availableSpots;
 }
 
-export const getSchedule = async (facility, parseDate, watchedMap) => {
+export const getSchedule = async (
+  facility,
+  parseDate,
+  watchedMap,
+  deleteNewSpaceAlert
+) => {
   const date = dayToDate(parseDate);
   const options = getRequestOptions(facility, date);
 
@@ -212,7 +221,9 @@ export const getSchedule = async (facility, parseDate, watchedMap) => {
       options
     );
     const result = formatResponse(facility, response);
-    return watchedMap ? getChangedAvailability(watchedMap, result) : result;
+    return watchedMap
+      ? getChangedAvailability(watchedMap, result, deleteNewSpaceAlert)
+      : result;
   } catch (error) {
     console.error(error);
   }

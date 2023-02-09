@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import * as RNP from "react-native-paper";
 import { getFacilityTitleAndLocation } from "../common/helpers";
 import { NotifyContext } from "../common/Context";
@@ -68,13 +68,10 @@ export default function SettingsNotifications() {
 const styles = StyleSheet.create({
   itemCard: {
     margin: 8,
-    marginLeft: 15,
-    marginRight: 15,
     paddingTop: 0,
     paddingBottom: 0,
   },
   noResults: {
-    margin: 10,
     padding: 20,
   },
   section: {

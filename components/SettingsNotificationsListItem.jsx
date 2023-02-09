@@ -1,10 +1,10 @@
 import { useContext } from "react";
 import * as RNP from "react-native-paper";
-import { formattedDate, dateToDay } from "../common/helpers";
+import { formattedDate, dateToDay, dateToFromNow } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
 import { NotifyContext } from "../common/Context";
 import { useNavigation } from "@react-navigation/native";
-import { Animated } from "react-native";
+import { Animated, View } from "react-native";
 import { useShakeAnimation } from "../common/hooks/useShakeAnimation";
 
 export default function SettingsNotificationsListItem({
@@ -18,6 +18,56 @@ export default function SettingsNotificationsListItem({
   const theme = useAppTheme();
   const navigation = useNavigation();
   const shake = useShakeAnimation(newSpaceAlerts.has(id), newSpaceAlerts);
+
+  const DateIcon = () => {
+    const [day, month, dayNum] = formattedDate(date).split(" ");
+    return (
+      <View
+        style={{
+          width: 55,
+          marginLeft: 10,
+          padding: 5,
+          borderRadius: 10,
+          backgroundColor: theme.colors.darkGrey,
+          alignSelf: "center",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {newSpaceAlerts.has(id) ? (
+          <Animated.View
+            style={{
+              transform: [{ translateX: shake.current }],
+            }}
+          >
+            <RNP.IconButton
+              icon="bell-ring"
+              iconColor={theme.colors.primary}
+              style={{ marginRight: 0 }}
+            />
+          </Animated.View>
+        ) : (
+          <>
+            <RNP.Text
+              style={{
+                margin: 0,
+                textAlign: "center",
+                lineHeight: 30,
+                fontSize: 30,
+              }}
+            >
+              {dayNum}
+            </RNP.Text>
+            <RNP.Text
+              style={{ margin: 0, lineHeight: 14, textAlign: "center" }}
+            >
+              {month}
+            </RNP.Text>
+          </>
+        )}
+      </View>
+    );
+  };
 
   return (
     <RNP.Card
@@ -34,7 +84,7 @@ export default function SettingsNotificationsListItem({
         onPress={() => {
           navigation.navigate("Schedule", {
             facility,
-            tab: dateToDay(date),
+            tab: dateToFromNow(date),
           });
         }}
         style={{
@@ -42,35 +92,21 @@ export default function SettingsNotificationsListItem({
           paddingBottom: 0,
           paddingTop: 0,
         }}
-        title={`${formattedDate(date)}  •  ${slot}`}
+        title={`${dateToFromNow(date, true)}  •  ${slot}`}
         description={`${spotsWanted} space${spotsWanted > 1 ? "s" : ""}`}
         descriptionStyle={{ opacity: 0.6 }}
-        right={(props) =>
-          newSpaceAlerts.has(id) ? (
-            <Animated.View
-              style={{
-                transform: [{ translateX: shake.current }],
-              }}
-            >
-              <RNP.IconButton
-                {...props}
-                icon="bell-ring"
-                iconColor={theme.colors.primary}
-                style={{ marginRight: 0 }}
-              />
-            </Animated.View>
-          ) : (
-            <RNP.IconButton
-              {...props}
-              iconColor={theme.colors.onSurfaceDisabled}
-              style={{ marginRight: 0 }}
-              icon="close-circle"
-              onPress={() => {
-                deleteWatchedMap(id);
-              }}
-            />
-          )
-        }
+        left={() => <DateIcon />}
+        right={(props) => (
+          <RNP.IconButton
+            {...props}
+            iconColor={theme.colors.onSurfaceDisabled}
+            style={{ marginRight: 0 }}
+            icon="close-circle"
+            onPress={() => {
+              deleteWatchedMap(id);
+            }}
+          />
+        )}
       />
     </RNP.Card>
   );

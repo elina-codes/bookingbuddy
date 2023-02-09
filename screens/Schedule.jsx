@@ -52,8 +52,6 @@ export default function Schedule({ route }) {
     },
   };
 
-  const { currentSchedule, setCurrentSchedule } = dayFuncMap[dateToShow];
-
   const checkTabBadges = (day) => {
     const facilityTabs = facilityTabBadges.get(facility);
     return !!facilityTabs?.has(day);
@@ -67,7 +65,7 @@ export default function Schedule({ route }) {
     for (let day of Object.values(scheduleDays)) {
       try {
         const daySchedule = await getSchedule(facility, day);
-        setCurrentSchedule(daySchedule);
+        dayFuncMap[day].setCurrentSchedule(daySchedule);
       } catch (e) {
         console.error(e);
       }
@@ -92,7 +90,9 @@ export default function Schedule({ route }) {
       }}
     >
       <ScheduleBookButton {...{ facility }} />
-      <ScheduleList {...{ currentSchedule }} />
+      <ScheduleList
+        {...{ currentSchedule: dayFuncMap[dateToShow].currentSchedule }}
+      />
       <View>
         <ScheduleTabs
           {...{

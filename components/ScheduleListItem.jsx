@@ -46,7 +46,7 @@ export default function ScheduleListItem({ data, disableNotify }) {
   }, [newSpotsWanted]);
 
   useEffect(() => {
-    setIsNotifyOn(watchedMap.has(id));
+    setIsNotifyOn(watchedMap.get(id));
   }, [watchedMap.get(id)]);
 
   const availabilityIconMap = (availability = []) => {
