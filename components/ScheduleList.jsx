@@ -12,7 +12,7 @@ export default function ScheduleList({ currentSchedule, spotsWanted }) {
 
   return (
     <ScrollView>
-      <RNP.List.Section style={{ paddingLeft: 10, paddingRight: 10 }}>
+      <RNP.List.Section>
         {schedule?.length > 0 ? (
           schedule.map((item) => {
             const { id } = item;

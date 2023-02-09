@@ -1,74 +1,58 @@
 import { useContext, useEffect, useState } from "react";
 import * as RNP from "react-native-paper";
+import { Animated } from "react-native";
 import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
-import NumericInput from "react-native-numeric-input";
-import { Animated, View } from "react-native";
 import { useShakeAnimation } from "../common/hooks/useShakeAnimation";
+import ScheduleListItemSpotsInput from "./ScheduleListItemSpotsInput";
 
 export default function ScheduleListItem({ data, disableNotify }) {
   const { availability, facility, slot, id, date } = data;
-  const {
-    notifyMap,
-    newSpaceAlerts,
-    deleteNewSpaceAlert,
-    updateNotifyMap,
-    deleteNotifyMap,
-  } = useContext(NotifyContext);
+  const { watchedMap, newSpaceAlerts, updateWatchedMap, deleteWatchedMap } =
+    useContext(NotifyContext);
   const theme = useAppTheme();
 
-  const [isNotifyOn, setIsNotifyOn] = useState(notifyMap.has(id));
-  const [notifySpots, setNotifySpots] = useState(
-    notifyMap.get(id)?.spotsWanted || 1
+  const [isNotifyOn, setIsNotifyOn] = useState(watchedMap.has(id));
+  const [newSpotsWanted, setNewSpotsWanted] = useState(
+    watchedMap.get(id)?.spotsWanted || 1
   );
 
   const shake = useShakeAnimation(newSpaceAlerts.has(id), newSpaceAlerts);
 
+  const updateWatched = () =>
+    updateWatchedMap({
+      id,
+      facility,
+      date,
+      slot,
+      availability,
+      spotsWanted: parseInt(newSpotsWanted),
+    });
+
   const toggleNotifications = () => {
-    if (notifyMap.has(id)) {
-      deleteNotifyMap(id);
+    if (watchedMap.has(id)) {
+      deleteWatchedMap(id);
       setIsNotifyOn(false);
     } else {
-      updateNotifyMap({
-        id,
-        facility,
-        date,
-        slot,
-        availability,
-        spotsWanted: parseInt(notifySpots),
-      });
+      updateWatched();
       setIsNotifyOn(true);
     }
   };
 
   useEffect(() => {
-    if (notifyMap.has(id)) {
-      updateNotifyMap({
-        id,
-        facility,
-        date,
-        slot,
-        availability,
-        spotsWanted: parseInt(notifySpots),
-      });
+    if (watchedMap.has(id)) {
+      updateWatched();
     }
-  }, [notifySpots]);
+  }, [newSpotsWanted]);
 
   useEffect(() => {
-    if (newSpaceAlerts.has(id)) {
-      setTimeout(() => {
-        deleteNewSpaceAlert(id);
-      }, 10000);
-    }
-  }, [newSpaceAlerts]);
+    setIsNotifyOn(watchedMap.has(id));
+  }, [watchedMap.get(id)]);
 
-  useEffect(() => {
-    setIsNotifyOn(notifyMap.get(id));
-  }, [notifyMap.get(id)]);
-
-  const availabilityIconMap = (availability) => {
+  const availabilityIconMap = (availability = []) => {
     const spaces = parseInt(availability.split(" ")[0]);
     const hasFewSpaces = !isNaN(spaces) && spaces < 5;
+
     if (availability === "Full") {
       return {
         color: theme.colors.errorContainer,
@@ -116,42 +100,18 @@ export default function ScheduleListItem({ data, disableNotify }) {
         paddingRight: 10,
       }}
       left={(props) => {
-        return (
-          <RNP.List.Icon
-            {...props}
-            color={availabilityIconMap(availability).color}
-            icon={availabilityIconMap(availability).icon}
-          />
-        );
+        const { color, icon } = availabilityIconMap(availability);
+        return <RNP.List.Icon {...{ ...props, color, icon }} />;
       }}
       right={(props) => (
         <>
           {isNotifyOn && (
-            <View style={{ alignSelf: "center" }}>
-              <NumericInput
-                {...{
-                  minValue: 1,
-                  maxValue: 4,
-                  initValue: notifySpots,
-                  textColor: theme.colors.inverseSurface,
-                  onChange: (value) => setNotifySpots(value),
-                  rightButtonBackgroundColor: theme.colors.darkGrey,
-                  leftButtonBackgroundColor: theme.colors.darkGrey,
-                  iconStyle: { color: theme.colors.inverseSurface },
-                  borderColor: theme.colors.surface,
-                  separatorWidth: 0,
-                  rounded: true,
-                  reachMaxIncIconStyle: {
-                    color: theme.colors.surfaceDisabled,
-                  },
-                  reachMinDecIconStyle: {
-                    color: theme.colors.surfaceDisabled,
-                  },
-                  totalHeight: 45,
-                  totalWidth: 120,
-                }}
-              />
-            </View>
+            <ScheduleListItemSpotsInput
+              {...{
+                initValue: newSpotsWanted,
+                onChange: (val) => setNewSpotsWanted(val),
+              }}
+            />
           )}
           <Animated.View
             style={{

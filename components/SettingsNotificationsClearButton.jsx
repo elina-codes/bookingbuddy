@@ -7,7 +7,7 @@ import { NotifyContext } from "../common/Context";
 export default function SettingsNotificationsClearButton() {
   const theme = useAppTheme();
 
-  const { notifyMap, clearNotifyMap } = useContext(NotifyContext);
+  const { watchedMap, clearWatchedMap } = useContext(NotifyContext);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -16,7 +16,7 @@ export default function SettingsNotificationsClearButton() {
   };
 
   const onDeleteConfirm = () => {
-    clearNotifyMap();
+    clearWatchedMap();
     setShowDeleteConfirm(false);
   };
 
@@ -42,7 +42,7 @@ export default function SettingsNotificationsClearButton() {
       ) : (
         <RNP.Button
           icon={"bell-off"}
-          disabled={showDeleteConfirm || notifyMap.size === 0}
+          disabled={showDeleteConfirm || watchedMap.size === 0}
           textColor={theme.colors.text}
           style={{ width: "100%" }}
           mode="outlined"
@@ -51,6 +51,7 @@ export default function SettingsNotificationsClearButton() {
           Turn off all notifications
         </RNP.Button>
       )}
+
       {showDeleteConfirm && (
         <View style={{ flexDirection: "row" }}>
           <RNP.Button

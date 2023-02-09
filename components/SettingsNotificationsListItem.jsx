@@ -14,7 +14,7 @@ export default function SettingsNotificationsListItem({
   date,
   slot,
 }) {
-  const { newSpaceAlerts, deleteNotifyMap } = useContext(NotifyContext);
+  const { newSpaceAlerts, deleteWatchedMap } = useContext(NotifyContext);
   const theme = useAppTheme();
   const navigation = useNavigation();
   const shake = useShakeAnimation(newSpaceAlerts.has(id), newSpaceAlerts);
@@ -66,7 +66,7 @@ export default function SettingsNotificationsListItem({
               style={{ marginRight: 0 }}
               icon="close-circle"
               onPress={() => {
-                deleteNotifyMap(id);
+                deleteWatchedMap(id);
               }}
             />
           )

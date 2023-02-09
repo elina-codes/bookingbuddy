@@ -73,7 +73,7 @@ export const dayToDate = (day) => {
   }
 };
 
-export const dateFromNow = (date) =>
+export const dateToFromNow = (date) =>
   dayjs(date).calendar(null, {
     sameDay: "[Today]",
     nextDay: "[Tomorrow]",
@@ -146,8 +146,9 @@ export const formatResponse = (facility, response) => {
     return result;
   };
 
-  const resp = response.data.event_list_html;
+  const resp = response?.data?.event_list_html;
   const resp_array = parseAvailability(resp);
+
   return resp_array.map((item) => {
     const splitItem = item.date.split(",");
     const dateString = `${splitItem[1].trim()}, ${new Date().getFullYear()}`;
@@ -158,6 +159,7 @@ export const formatResponse = (facility, response) => {
       ? "Full"
       : item.availability;
     const id = `${facility},${formattedDate(date)},${slot}`;
+
     return {
       id,
       facility,
@@ -180,10 +182,10 @@ export const normalizeAvailability = (item = {}) => {
   }
 };
 
-export function getChangedAvailability(notifyMap, newSchedule) {
+export function getChangedAvailability(watchedMap, newSchedule) {
   const availableSpots = [];
 
-  [...notifyMap].forEach((entry) => {
+  [...watchedMap].forEach((entry) => {
     const [id, { availability, spotsWanted }] = entry;
     const newItem = newSchedule.find((item) => item.id === id);
 
@@ -200,7 +202,7 @@ export function getChangedAvailability(notifyMap, newSchedule) {
   return availableSpots;
 }
 
-export const getSchedule = async (facility, parseDate, notifyMap) => {
+export const getSchedule = async (facility, parseDate, watchedMap) => {
   const date = dayToDate(parseDate);
   const options = getRequestOptions(facility, date);
 
@@ -210,7 +212,7 @@ export const getSchedule = async (facility, parseDate, notifyMap) => {
       options
     );
     const result = formatResponse(facility, response);
-    return notifyMap ? getChangedAvailability(notifyMap, result) : result;
+    return watchedMap ? getChangedAvailability(watchedMap, result) : result;
   } catch (error) {
     console.error(error);
   }

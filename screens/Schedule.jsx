@@ -1,9 +1,8 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-import * as RNP from "react-native-paper";
 import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
-import ScheduleHeadings from "../components/ScheduleHeadings";
+import ScheduleBookButton from "../components/ScheduleBookButton";
 import { getSchedule } from "../common/helpers";
 
 import { useInterval } from "../common/hooks/useInterval";
@@ -16,20 +15,14 @@ export default function Schedule({ route }) {
     useContext(NotifyContext);
   const theme = useAppTheme();
 
-  const { facility, tab = "today", badges } = route.params || {};
+  const { facility, tab = "today" } = route.params || {};
 
   const [dateToShow, setDateToShow] = useState(tab);
-
   const [currentScheduleToday, setCurrentScheduleToday] = useState([]);
   const [currentScheduleTomorrow, setCurrentScheduleTomorrow] = useState([]);
   const [currentScheduleOvermorrow, setCurrentScheduleOvermorrow] = useState(
     []
   );
-
-  const checkTabBadges = (day) => {
-    const facilityTabs = facilityTabBadges.get(facility);
-    return !!facilityTabs?.has(day);
-  };
 
   const currentScheduleTodayMemo = useMemo(
     () => currentScheduleToday,
@@ -59,6 +52,13 @@ export default function Schedule({ route }) {
     },
   };
 
+  const { currentSchedule, setCurrentSchedule } = dayFuncMap[dateToShow];
+
+  const checkTabBadges = (day) => {
+    const facilityTabs = facilityTabBadges.get(facility);
+    return !!facilityTabs?.has(day);
+  };
+
   const onTabChange = (day) => {
     setDateToShow(day);
   };
@@ -67,7 +67,7 @@ export default function Schedule({ route }) {
     for (let day of Object.values(scheduleDays)) {
       try {
         const daySchedule = await getSchedule(facility, day);
-        dayFuncMap[day].setCurrentSchedule(daySchedule);
+        setCurrentSchedule(daySchedule);
       } catch (e) {
         console.error(e);
       }
@@ -91,12 +91,8 @@ export default function Schedule({ route }) {
         backgroundColor: theme.colors.background,
       }}
     >
-      <ScheduleHeadings {...{ facility }} />
-      <ScheduleList
-        {...{
-          currentSchedule: dayFuncMap[dateToShow].currentSchedule,
-        }}
-      />
+      <ScheduleBookButton {...{ facility }} />
+      <ScheduleList {...{ currentSchedule }} />
       <View>
         <ScheduleTabs
           {...{

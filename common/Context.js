@@ -44,11 +44,11 @@ export const ThemeProvider = ({ children }) => {
 export const NotifyContext = createContext();
 
 export const NotifyProvider = ({ children }) => {
-  const [notifyMap, setNotifyMap] = useState(new Map([]));
+  const [watchedMap, setWatchedMap] = useState(new Map([]));
   const [facilityTabBadges, setFacilityTabBadges] = useState(new Map([]));
   const [newSpaceAlerts, setNewSpaceAlerts] = useState(new Set());
 
-  const updateNotifyMap = ({
+  const updateWatchedMap = ({
     id,
     facility,
     date,
@@ -56,23 +56,23 @@ export const NotifyProvider = ({ children }) => {
     availability,
     spotsWanted,
   }) => {
-    setNotifyMap((prev) => {
+    setWatchedMap((prev) => {
       const newMap = new Map(prev);
       newMap.set(id, { facility, date, slot, availability, spotsWanted });
       return newMap;
     });
   };
 
-  const deleteNotifyMap = (id) => {
-    setNotifyMap((prev) => {
+  const deleteWatchedMap = (id) => {
+    setWatchedMap((prev) => {
       const newMap = new Map(prev);
       newMap.delete(id);
       return newMap;
     });
   };
 
-  const clearNotifyMap = () => {
-    setNotifyMap(new Map([]));
+  const clearWatchedMap = () => {
+    setWatchedMap(new Map([]));
   };
 
   const addNewSpaceAlert = (id) => {
@@ -116,10 +116,10 @@ export const NotifyProvider = ({ children }) => {
   return (
     <NotifyContext.Provider
       value={{
-        notifyMap,
-        clearNotifyMap,
-        updateNotifyMap,
-        deleteNotifyMap,
+        watchedMap,
+        clearWatchedMap,
+        updateWatchedMap,
+        deleteWatchedMap,
         facilityTabBadges,
         addFacilityTabBadge,
         deleteFacilityTabBadge,

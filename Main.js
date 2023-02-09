@@ -15,7 +15,7 @@ import {
   isTomorrow,
   getSchedule,
   getFacilityTitleAndLocation,
-  dateFromNow,
+  dateToFromNow,
 } from "./common/helpers";
 import { View } from "react-native";
 import * as Notifications from "expo-notifications";
@@ -38,8 +38,12 @@ Notifications.setNotificationHandler({
 const Stack = createNativeStackNavigator();
 
 export default function Main() {
-  const { notifyMap, updateNotifyMap, addFacilityTabBadge, addNewSpaceAlert } =
-    useContext(NotifyContext);
+  const {
+    watchedMap,
+    updateWatchedMap,
+    addFacilityTabBadge,
+    addNewSpaceAlert,
+  } = useContext(NotifyContext);
   const theme = useAppTheme();
   const navigation = useNavigation();
 
@@ -47,6 +51,7 @@ export default function Main() {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   useEffect(() => {
+    // Listen for notifications in the foreground
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         const { tab, facility } = notification?.request?.content?.data || {};
@@ -56,23 +61,26 @@ export default function Main() {
       }
     );
 
+    // Listen for notifications that are tapped on
     const receivedSubscription =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const { tab, facility } =
           response?.notification?.request?.content?.data || {};
         navigation.navigate("Schedule", { facility, tab });
       });
+
+    // Clean up listeners
     return () => {
       receivedSubscription.remove();
       subscription.remove();
     };
   }, []);
 
-  // Update the notifyMap with the latest availability to prevent duplicate notifications
+  // Update watchedMap with the latest availability to prevent duplicate notifications
   const handleNewNotification = (item = {}) => {
     let { id, availability } = item;
-    const current = notifyMap.get(id);
-    updateNotifyMap({ id, ...current, availability });
+    const current = watchedMap.get(id);
+    updateWatchedMap({ id, ...current, availability });
     addNewSpaceAlert(id);
   };
 
@@ -82,7 +90,7 @@ export default function Main() {
         .map((item = {}) => {
           handleNewNotification(item);
           const { date, availability, slot } = item || {};
-          const itemDate = dateFromNow(date);
+          const itemDate = dateToFromNow(date);
           return `${itemDate}: ${availability} from ${slot}`;
         })
         .join("\n");
@@ -101,6 +109,7 @@ export default function Main() {
             : scheduleDays.today,
         },
       };
+
       try {
         await Notifications.scheduleNotificationAsync({
           content,
@@ -113,21 +122,23 @@ export default function Main() {
   };
 
   const checkForNewAvailability = useCallback(() => {
-    if (notifyMap.size) {
+    if (watchedMap.size) {
+      // Keep track of facility/date pairs to prevent duplicate notifications
       const facilityDateSet = new Set();
-      [...notifyMap.values()].forEach((item) => {
+      [...watchedMap.values()].forEach((item) => {
         const { facility, date } = item;
         facilityDateSet.add(`${facility},${date}`);
       });
+      // Keep track of spaces that have already been notified to
+      // prevent multiple notifications when availability changes
+      // but still meets the notification criteria (e.g. 4 spaces -> Available)
       [...facilityDateSet].forEach(async (pair) => {
         const [facility, date] = pair.split(",");
         const parseDate = dateToDay(date);
         if (parseDate) {
-          const newSpaces = await getSchedule(facility, parseDate, notifyMap);
+          const newSpaces = await getSchedule(facility, parseDate, watchedMap);
           if (newSpaces.length) {
-            // Filter out spaces that have already been notified to
-            // prevent multiple notifications for the same space
-            // when availability changes but fits constraints
+            // Filter out spaces that have already been notified
             const spacesNotYetNotified = newSpaces.filter(
               (item) => !newSpaceAlerts.has(item.id)
             );
@@ -136,11 +147,11 @@ export default function Main() {
         }
       });
     }
-  }, [notifyMap]);
+  }, [watchedMap]);
 
   useEffect(() => {
     checkForNewAvailability();
-  }, [notifyMap]);
+  }, [watchedMap]);
 
   useInterval(checkForNewAvailability, 20000);
 
@@ -169,14 +180,14 @@ export default function Main() {
                   icon="bell-outline"
                   color={theme.colors.inverseSurface}
                   onPress={() =>
-                    navigation.navigate("Notifications", { params: notifyMap })
+                    navigation.navigate("Notifications", { params: watchedMap })
                   }
                 />
                 <RNP.Appbar.Action
                   icon="cog-outline"
                   color={theme.colors.inverseSurface}
                   onPress={() =>
-                    navigation.navigate("Settings", { params: notifyMap })
+                    navigation.navigate("Settings", { params: watchedMap })
                   }
                 />
               </>
