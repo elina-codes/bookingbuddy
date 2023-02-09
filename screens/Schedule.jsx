@@ -4,18 +4,17 @@ import { View } from "react-native";
 import ScheduleTabs from "../components/ScheduleTabs";
 import ScheduleList from "../components/ScheduleList";
 import ScheduleHeadings from "../components/ScheduleHeadings";
-import { getFacilityTitleAndLocation, getSchedule } from "../common/helpers";
+import { getSchedule } from "../common/helpers";
 
 import { useInterval } from "../common/hooks/useInterval";
 import { useAppTheme } from "../common/theme";
 import { scheduleDays } from "../common/constants";
-import { NotifyContext, ThemeContext } from "../common/Context";
+import { NotifyContext } from "../common/Context";
 
 export default function Schedule({ route }) {
   const { deleteFacilityTabBadge, facilityTabBadges } =
     useContext(NotifyContext);
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   const { facility, tab = "today", badges } = route.params || {};
 

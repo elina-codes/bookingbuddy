@@ -6,10 +6,11 @@ import { ThemeContext } from "../common/Context";
 import { getThemeGradient } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
 import { themeColors } from "../common/constants";
+import ScheduleListItem from "./ScheduleListItem";
 
 export default function SettingsTheme() {
   const { currentTheme, setCurrentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   const ThemeSwatch = ({ color }) => {
     const isCurrentTheme = color === currentTheme;
@@ -43,8 +44,25 @@ export default function SettingsTheme() {
     );
   };
 
+  const ExampleListItem = () => (
+    <ScheduleListItem
+      data={{
+        id: "test",
+        availability: "Available",
+        facility: "Climbing gym",
+        slot: "2PM-4PM",
+        date: new Date(),
+      }}
+      disableNotify
+    />
+  );
+
   return (
-    <RNP.List.Section title="Theme" titleStyle={{ fontSize: 16 }}>
+    <RNP.List.Section
+      title="Theme"
+      titleStyle={{ fontSize: 18 }}
+      style={{ marginBottom: 40 }}
+    >
       <View
         style={{
           flexDirection: "row",

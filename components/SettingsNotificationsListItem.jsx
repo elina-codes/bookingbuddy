@@ -2,7 +2,10 @@ import { useContext } from "react";
 import * as RNP from "react-native-paper";
 import { formattedDate, dateToDay } from "../common/helpers";
 import { useAppTheme } from "../common/theme";
-import { NotifyContext, ThemeContext } from "../common/Context";
+import { NotifyContext } from "../common/Context";
+import { useNavigation } from "@react-navigation/native";
+import { Animated } from "react-native";
+import { useShakeAnimation } from "../common/hooks/useShakeAnimation";
 
 export default function SettingsNotificationsListItem({
   id,
@@ -10,12 +13,11 @@ export default function SettingsNotificationsListItem({
   spotsWanted,
   date,
   slot,
-  navigation,
-  closeModal,
 }) {
-  const { deleteNotifyMap } = useContext(NotifyContext);
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const { newSpaceAlerts, deleteNotifyMap } = useContext(NotifyContext);
+  const theme = useAppTheme();
+  const navigation = useNavigation();
+  const shake = useShakeAnimation(newSpaceAlerts.has(id), newSpaceAlerts);
 
   return (
     <RNP.Card
@@ -30,7 +32,6 @@ export default function SettingsNotificationsListItem({
     >
       <RNP.List.Item
         onPress={() => {
-          closeModal();
           navigation.navigate("Schedule", {
             facility,
             tab: dateToDay(date),
@@ -44,17 +45,32 @@ export default function SettingsNotificationsListItem({
         title={`${formattedDate(date)}  •  ${slot}`}
         description={`${spotsWanted} space${spotsWanted > 1 ? "s" : ""}`}
         descriptionStyle={{ opacity: 0.6 }}
-        right={(props) => (
-          <RNP.IconButton
-            {...props}
-            iconColor={theme.colors.primary}
-            style={{ marginRight: 0 }}
-            icon="bell"
-            onPress={() => {
-              deleteNotifyMap(id);
-            }}
-          />
-        )}
+        right={(props) =>
+          newSpaceAlerts.has(id) ? (
+            <Animated.View
+              style={{
+                transform: [{ translateX: shake.current }],
+              }}
+            >
+              <RNP.IconButton
+                {...props}
+                icon="bell-ring"
+                iconColor={theme.colors.primary}
+                style={{ marginRight: 0 }}
+              />
+            </Animated.View>
+          ) : (
+            <RNP.IconButton
+              {...props}
+              iconColor={theme.colors.onSurfaceDisabled}
+              style={{ marginRight: 0 }}
+              icon="close-circle"
+              onPress={() => {
+                deleteNotifyMap(id);
+              }}
+            />
+          )
+        }
       />
     </RNP.Card>
   );

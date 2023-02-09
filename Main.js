@@ -1,8 +1,10 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { NotifyContext, ThemeContext } from "./common/Context";
+import { NotifyContext } from "./common/Context";
 import * as RNP from "react-native-paper";
 import { useAppTheme } from "./common/theme";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import NotificationsScreen from "./screens/Notifications";
+import SettingsScreen from "./screens/Settings";
 import ScheduleScreen from "./screens/Schedule";
 import HomeScreen from "./screens/Home";
 import Header from "./components/Header";
@@ -13,13 +15,13 @@ import {
   isTomorrow,
   getSchedule,
   getFacilityTitleAndLocation,
-  getTheme,
+  dateFromNow,
 } from "./common/helpers";
 import { View } from "react-native";
 import * as Notifications from "expo-notifications";
 import { useInterval } from "./common/hooks/useInterval";
 import { useNavigation } from "@react-navigation/native";
-import { facilities, scheduleDays } from "./common/constants";
+import { scheduleDays } from "./common/constants";
 import { Provider as PaperProvider } from "react-native-paper";
 
 // Run local notifications in the foreground
@@ -38,8 +40,7 @@ const Stack = createNativeStackNavigator();
 export default function Main() {
   const { notifyMap, updateNotifyMap, addFacilityTabBadge, addNewSpaceAlert } =
     useContext(NotifyContext);
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
   const navigation = useNavigation();
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -67,30 +68,27 @@ export default function Main() {
     };
   }, []);
 
+  // Update the notifyMap with the latest availability to prevent duplicate notifications
+  const handleNewNotification = (item = {}) => {
+    let { id, availability } = item;
+    const current = notifyMap.get(id);
+    updateNotifyMap({ id, ...current, availability });
+    addNewSpaceAlert(id);
+  };
+
   const sendLocalNotification = async (spaces = []) => {
     if (spaces.length) {
-      console.log("Sending local notification...", spaces);
       const body = spaces
         .map((item = {}) => {
-          let { id, date, availability, slot } = item || {};
-          const current = notifyMap.get(id);
-          addNewSpaceAlert(id);
-          console.log({ id, current });
-          updateNotifyMap({ id, ...current, availability });
-          if (isToday(date)) {
-            date = "Today";
-          } else if (isTomorrow(date)) {
-            date = "Tomorrow";
-          } else if (isOvermorrow(date)) {
-            date = date.toLocaleDateString("en-US", { weekday: "long" });
-          } else {
-            date = "";
-          }
-          return `${date}: ${availability} from ${slot}`;
+          handleNewNotification(item);
+          const { date, availability, slot } = item || {};
+          const itemDate = dateFromNow(date);
+          return `${itemDate}: ${availability} from ${slot}`;
         })
         .join("\n");
-      const { facility } = spaces?.[0] || {};
 
+      // Group notifications by facility
+      const { facility } = spaces?.[0] || {};
       const content = {
         title: `New availability for ${getFacilityTitleAndLocation(
           facility
@@ -127,7 +125,13 @@ export default function Main() {
         if (parseDate) {
           const newSpaces = await getSchedule(facility, parseDate, notifyMap);
           if (newSpaces.length) {
-            sendLocalNotification(newSpaces);
+            // Filter out spaces that have already been notified to
+            // prevent multiple notifications for the same space
+            // when availability changes but fits constraints
+            const spacesNotYetNotified = newSpaces.filter(
+              (item) => !newSpaceAlerts.has(item.id)
+            );
+            sendLocalNotification(spacesNotYetNotified);
           }
         }
       });
@@ -164,31 +168,49 @@ export default function Main() {
                 <RNP.Appbar.Action
                   icon="bell-outline"
                   color={theme.colors.inverseSurface}
-                  onPress={() => setShowNotificationsModal(true)}
+                  onPress={() =>
+                    navigation.navigate("Notifications", { params: notifyMap })
+                  }
                 />
                 <RNP.Appbar.Action
                   icon="cog-outline"
                   color={theme.colors.inverseSurface}
-                  onPress={() => setShowSettingsModal(true)}
+                  onPress={() =>
+                    navigation.navigate("Settings", { params: notifyMap })
+                  }
                 />
               </>
             ),
           }}
         >
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{
-              title: "Select a schedule",
+          <Stack.Group>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: "Select a schedule",
+              }}
+            />
+            <Stack.Screen
+              name="Schedule"
+              component={ScheduleScreen}
+              options={({ route }) => ({
+                title: getFacilityTitleAndLocation(route.params.facility),
+              })}
+            />
+          </Stack.Group>
+          <Stack.Group
+            screenOptions={{
+              presentation: "fullScreenModal",
+              animation: "fade",
             }}
-          />
-          <Stack.Screen
-            name="Schedule"
-            component={ScheduleScreen}
-            options={({ route }) => ({
-              title: getFacilityTitleAndLocation(route.params.facility),
-            })}
-          />
+          >
+            <Stack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+            />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+          </Stack.Group>
         </Stack.Navigator>
       </View>
     </PaperProvider>

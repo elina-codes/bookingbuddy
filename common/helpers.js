@@ -11,30 +11,10 @@ import {
   greenGradient,
   purpleGradient,
   goldGradient,
-  tealTheme,
-  theme,
-  goldTheme,
-  purpleTheme,
-  greenTheme,
 } from "../common/theme";
 import { facilities, scheduleDays, themeColors } from "./constants";
 
 /* THEME */
-
-export const getTheme = (currentTheme) => {
-  switch (currentTheme) {
-    case themeColors.teal:
-      return tealTheme;
-    case themeColors.green:
-      return greenTheme;
-    case themeColors.purple:
-      return purpleTheme;
-    case themeColors.gold:
-      return goldTheme;
-    default:
-      return theme;
-  }
-};
 
 export const getThemeGradient = (currentTheme) => {
   switch (currentTheme) {
@@ -93,7 +73,14 @@ export const dayToDate = (day) => {
   }
 };
 
-/* ENDPOINTS */
+export const dateFromNow = (date) =>
+  dayjs(date).calendar(null, {
+    sameDay: "[Today]",
+    nextDay: "[Tomorrow]",
+    nextWeek: "dddd",
+  });
+
+/* ENDPOINT FORMATTING */
 
 export const getRequestData = (facility, date) => {
   switch (facilities[facility]) {
@@ -189,7 +176,6 @@ export const normalizeAvailability = (item = {}) => {
     case "Available":
       return 100;
     default:
-      console.log(availability[0], parseInt(availability[0]));
       return parseInt(availability[0]);
   }
 };
@@ -205,6 +191,8 @@ export function getChangedAvailability(notifyMap, newSchedule) {
       const newAvail = normalizeAvailability(newItem);
       if (newAvail >= spotsWanted) {
         availableSpots.push(newItem);
+      } else {
+        deleteNewSpaceAlert(id);
       }
     }
   });

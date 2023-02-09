@@ -15,7 +15,7 @@ export default function Header({
   setShowNotificationsModal,
 }) {
   const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   return (
     <>

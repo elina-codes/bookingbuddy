@@ -6,7 +6,6 @@ export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState("default");
-
   // const storeTheme = async (value) => {
   //   try {
   //     await AsyncStorage.setItem("theme", value);

@@ -3,12 +3,9 @@ import * as Linking from "expo-linking";
 import { View, StyleSheet } from "react-native";
 import { useAppTheme } from "../common/theme";
 import { facilities } from "../common/constants";
-import { ThemeContext } from "../common/Context";
-import { useContext } from "react";
 
 export default function ScheduleHeadings({ facility }) {
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   const onWebsitePress = () => {
     Linking.openURL(facilities[facility].bookingLink);

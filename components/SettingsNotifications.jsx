@@ -1,15 +1,12 @@
 import { useContext, useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView } from "react-native";
 import * as RNP from "react-native-paper";
 import { getFacilityTitleAndLocation } from "../common/helpers";
-import { useAppTheme } from "../common/theme";
-import { NotifyContext, ThemeContext } from "../common/Context";
+import { NotifyContext } from "../common/Context";
 import SettingsNotificationsListItem from "./SettingsNotificationsListItem";
+import SettingsNotificationsClearButton from "./SettingsNotificationsClearButton";
 
-export default function SettingsNotifications({ navigation, closeModal }) {
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
-
+export default function SettingsNotifications() {
   const { notifyMap, deleteNotifyMap, clearNotifyMap } =
     useContext(NotifyContext);
 
@@ -77,8 +74,6 @@ export default function SettingsNotifications({ navigation, closeModal }) {
                           spotsWanted,
                           date,
                           slot,
-                          navigation,
-                          closeModal,
                         }}
                       />
                     );
@@ -92,52 +87,7 @@ export default function SettingsNotifications({ navigation, closeModal }) {
           </RNP.Card>
         )}
       </ScrollView>
-
-      <View
-        style={{
-          paddingLeft: 15,
-          paddingRight: 15,
-          marginBottom: 10,
-          ...(showDeleteConfirm && {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }),
-        }}
-      >
-        {showDeleteConfirm ? (
-          <RNP.Text>Are you sure?</RNP.Text>
-        ) : (
-          <RNP.Button
-            icon={"bell-off"}
-            disabled={showDeleteConfirm || notifyMap.size === 0}
-            textColor={theme.colors.text}
-            style={{ width: "100%" }}
-            mode="outlined"
-            onPress={onDeletePress}
-          >
-            Turn off all notifications
-          </RNP.Button>
-        )}
-        {showDeleteConfirm && (
-          <View style={{ flexDirection: "row" }}>
-            <RNP.Button
-              mode="outlined"
-              onPress={onDeleteCancel}
-              style={{ marginLeft: 10, marginRight: 10 }}
-            >
-              Cancel
-            </RNP.Button>
-            <RNP.Button
-              mode="outlined"
-              textColor={theme.colors.errorContainer}
-              onPress={onDeleteConfirm}
-            >
-              Yes, delete all
-            </RNP.Button>
-          </View>
-        )}
-      </View>
+      <SettingsNotificationsClearButton />
     </RNP.List.Section>
   );
 }

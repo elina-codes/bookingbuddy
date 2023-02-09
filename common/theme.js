@@ -1,6 +1,4 @@
 import { MD3DarkTheme as DefaultTheme, useTheme } from "react-native-paper";
-import { themeColors } from "./constants";
-import { getTheme } from "./helpers";
 
 export const tealGradient = ["#051937", "#004d7a", "#008793", "#00bf72"];
 export const goldGradient = [
@@ -192,7 +190,4 @@ export const goldTheme = {
   },
 };
 
-export const useAppTheme = (option = themeColors.default) => {
-  // const themeToShow = getTheme(option);
-  return useTheme(theme);
-};
+export const useAppTheme = () => useTheme(theme);

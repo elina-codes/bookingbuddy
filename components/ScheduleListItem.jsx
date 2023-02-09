@@ -1,11 +1,12 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import * as RNP from "react-native-paper";
-import { NotifyContext, ThemeContext } from "../common/Context";
+import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
 import NumericInput from "react-native-numeric-input";
 import { Animated, View } from "react-native";
+import { useShakeAnimation } from "../common/hooks/useShakeAnimation";
 
-export default function ScheduleListItem({ data }) {
+export default function ScheduleListItem({ data, disableNotify }) {
   const { availability, facility, slot, id, date } = data;
   const {
     notifyMap,
@@ -14,38 +15,14 @@ export default function ScheduleListItem({ data }) {
     updateNotifyMap,
     deleteNotifyMap,
   } = useContext(NotifyContext);
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   const [isNotifyOn, setIsNotifyOn] = useState(notifyMap.has(id));
   const [notifySpots, setNotifySpots] = useState(
     notifyMap.get(id)?.spotsWanted || 1
   );
 
-  const anim = useRef(new Animated.Value(0));
-
-  const shake = useCallback(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(anim.current, {
-          toValue: -2,
-          duration: 20,
-          useNativeDriver: true,
-        }),
-        Animated.timing(anim.current, {
-          toValue: 2,
-          duration: 20,
-          useNativeDriver: true,
-        }),
-        Animated.timing(anim.current, {
-          toValue: 0,
-          duration: 20,
-          useNativeDriver: true,
-        }),
-      ]),
-      { iterations: 10 }
-    ).start();
-  }, []);
+  const shake = useShakeAnimation(newSpaceAlerts.has(id), newSpaceAlerts);
 
   const toggleNotifications = () => {
     if (notifyMap.has(id)) {
@@ -79,7 +56,6 @@ export default function ScheduleListItem({ data }) {
 
   useEffect(() => {
     if (newSpaceAlerts.has(id)) {
-      shake();
       setTimeout(() => {
         deleteNewSpaceAlert(id);
       }, 10000);
@@ -115,7 +91,7 @@ export default function ScheduleListItem({ data }) {
     if (newSpaceAlerts.has(id)) {
       return "bell-ring";
     } else if (isNotifyOn) {
-      return "bell";
+      return "bell-outline";
     } else {
       return "bell-off-outline";
     }
@@ -127,6 +103,7 @@ export default function ScheduleListItem({ data }) {
       : theme.colors.surfaceVariant;
 
   return (
+    // <RNP.Card style={{ margin: 5 }}>
     <RNP.List.Item
       titleStyle={availability === "Full" ? { opacity: 0.6 } : {}}
       descriptionStyle={availability === "Full" ? { opacity: 0.6 } : {}}
@@ -136,7 +113,7 @@ export default function ScheduleListItem({ data }) {
       style={{
         paddingTop: 0,
         paddingBottom: 0,
-        paddingRight: 20,
+        paddingRight: 10,
       }}
       left={(props) => {
         return (
@@ -164,24 +141,34 @@ export default function ScheduleListItem({ data }) {
                   borderColor: theme.colors.surface,
                   separatorWidth: 0,
                   rounded: true,
-                  reachMaxIncIconStyle: { color: theme.colors.surfaceDisabled },
-                  reachMinDecIconStyle: { color: theme.colors.surfaceDisabled },
+                  reachMaxIncIconStyle: {
+                    color: theme.colors.surfaceDisabled,
+                  },
+                  reachMinDecIconStyle: {
+                    color: theme.colors.surfaceDisabled,
+                  },
                   totalHeight: 45,
                   totalWidth: 120,
                 }}
               />
             </View>
           )}
-          <Animated.View style={{ transform: [{ translateX: anim.current }] }}>
+          <Animated.View
+            style={{
+              transform: [{ translateX: shake.current }],
+            }}
+          >
             <RNP.IconButton
               {...props}
               onPress={toggleNotifications}
               icon={getIcon()}
               iconColor={getIconColor()}
+              disabled={disableNotify}
             />
           </Animated.View>
         </>
       )}
     />
+    // </RNP.Card>
   );
 }

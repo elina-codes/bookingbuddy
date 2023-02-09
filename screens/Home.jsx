@@ -2,13 +2,12 @@ import { useContext } from "react";
 import { ScrollView, View } from "react-native";
 import * as RNP from "react-native-paper";
 import { facilities } from "../common/constants";
-import { NotifyContext, ThemeContext } from "../common/Context";
+import { NotifyContext } from "../common/Context";
 import { useAppTheme } from "../common/theme";
 
 export default function Home({ navigation }) {
   const { facilityTabBadges } = useContext(NotifyContext);
-  const { currentTheme } = useContext(ThemeContext);
-  const theme = useAppTheme(currentTheme);
+  const theme = useAppTheme();
 
   const hasBadges = (facility) => {
     const facilityTabs = facilityTabBadges.get(facility);
