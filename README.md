@@ -7,9 +7,9 @@ Currently supports climbing and class bookings at the Hive locations in the Grea
 
 ### View facilities, booking schedules, and manage notifications
 
-<img alt="Facilities list" src="assets/screenshots/screenshot-facilities.png" width="250" />&nbsp;&nbsp;;&nbsp;
-<img alt="Schedule" src="assets/screenshots/screenshot-schedule.png" width="250" />&nbsp;&nbsp;;&nbsp;
-<img alt="Notifications" src="assets/screenshots/screenshot-notifications.png" width="250" />
+<img alt="Facilities list" src="assets/screenshots/screenshot-facilities.png" width="253" />&nbsp;&nbsp;&nbsp;
+<img alt="Schedule" src="assets/screenshots/screenshot-schedule.png" width="253" />&nbsp;&nbsp;&nbsp;
+<img alt="Notifications" src="assets/screenshots/screenshot-notifications.png" width="253" />
 
 ### Multiple Themes
 
